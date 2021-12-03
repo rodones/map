@@ -1,0 +1,22 @@
+{
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  },
+  "editor.tabSize": 2,
+  "todo-tree.general.tags": [
+    "TODO",
+    "FIXME",
+    "BUG",
+    "NOTE"
+  ],
+  "todo-tree.highlights.customHighlight": {
+    "NOTE": {
+      "icon": "note",
+      "type": "tag",
+      "foreground": "black",
+      "background": "cyan",
+      "opacity": 50,
+      "iconColour": "blue"
+    }
+  },
+}
