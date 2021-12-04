@@ -53,10 +53,8 @@ class PointerLockControls extends EventDispatcher {
       scope.dispatchEvent(_changeEvent);
     }
 
-    function onPointerlockChange() {
-      if (
-        scope.domElement.ownerDocument.pointerLockElement === scope.domElement
-      ) {
+    function onPointerlockChange(_event) {
+      if (scope.domElement.ownerDocument.pointerLockElement) {
         scope.dispatchEvent(_lockEvent);
 
         scope.isLocked = true;

@@ -2,13 +2,16 @@ import { LitElement, html, css } from "lit";
 import { ref, createRef } from "lit/directives/ref.js";
 import {
   AmbientLight,
-  DirectionalLight,
+  // DirectionalLight,
   Fog,
   PerspectiveCamera,
   Scene,
   Vector3,
   WebGLRenderer,
   Color,
+  Mesh,
+  AxesHelper,
+  Raycaster,
 } from "three";
 import {
   MapControls,
@@ -17,6 +20,7 @@ import {
   TrackballControls,
 } from "../controls";
 import { NexusObject } from "../vendors/NexusObject";
+import { PLYLoader } from "../vendors/PLYLoader";
 
 export class Canvas extends LitElement {
   static styles = css`
@@ -63,20 +67,22 @@ export class Canvas extends LitElement {
     this.scene.fog = new Fog(0x050505, 2000, 3500);
     this.scene.add(new AmbientLight(0x444444));
 
-    const light1 = new DirectionalLight(0xffffff, 1.0);
-    light1.position.set(1, 1, -1);
-    this.scene.add(light1);
+    // const light1 = new DirectionalLight(0xffffff, 1.0);
+    // light1.position.set(1, 1, -1);
+    // this.scene.add(light1);
 
-    const light2 = new DirectionalLight(0xffffff, 1.0);
-    light2.position.set(-1, -1, 1);
-    this.scene.add(light2);
+    // const light2 = new DirectionalLight(0xffffff, 1.0);
+    // light2.position.set(-1, -1, 1);
+    // this.scene.add(light2);
+
+    this.scene.add(new AxesHelper(5));
   }
 
   _createRenderer() {
     const canvas = this.canvasRef.value;
 
     this.renderer = new WebGLRenderer({
-      antialias: false,
+      antialias: true,
       canvas,
     });
     this.renderer.setClearColor(this.scene.fog.color);
@@ -90,10 +96,10 @@ export class Canvas extends LitElement {
     this.camera = new PerspectiveCamera(
       30,
       canvas.offsetWidth / canvas.offsetHeight,
-      0.001,
-      100,
+      1,
+      2000,
     );
-    this.camera.position.z = 4.0;
+    this.camera.position.z = 2;
   }
 
   _createControls() {
@@ -118,26 +124,103 @@ export class Canvas extends LitElement {
   _createPointerLockControls() {
     const canvas = this.canvasRef.value;
 
+    this.moveForward = false;
+    this.moveBackward = false;
+    this.moveLeft = false;
+    this.moveRight = false;
+    this.canJump = false;
+
+    this.prevTime = performance.now();
+    this.velocity = new Vector3();
+    this.direction = new Vector3();
+    this.vertex = new Vector3();
+    this.color = new Color();
+
     this.controls = new PointerLockControls(this.camera, canvas);
 
-    // const blocker = document.getElementById("blocker");
-    // const instructions = document.getElementById("instructions");
+    const blocker = document.getElementById("blocker");
+    const instructions = document.getElementById("instructions");
 
-    // instructions.addEventListener("click", function () {
-    //   this.controls.lock();
-    // });
+    instructions.addEventListener("click", () => {
+      this.controls.lock();
+    });
 
-    // this.controls.addEventListener("lock", function () {
-    //   instructions.style.display = "none";
-    //   blocker.style.display = "none";
-    // });
+    this.controls.addEventListener("lock", () => {
+      console.log("lock");
+      instructions.style.display = "none";
+      blocker.style.display = "none";
+    });
 
-    // this.controls.addEventListener("unlock", function () {
-    //   blocker.style.display = "block";
-    //   instructions.style.display = "";
-    // });
+    this.controls.addEventListener("unlock", () => {
+      console.log("unlock");
 
-    // this.scene.add(this.controls.getObject());
+      blocker.style.display = "block";
+      instructions.style.display = "";
+    });
+
+    this.scene.add(this.controls.getObject());
+
+    const onKeyDown = (event) => {
+      event.preventDefault();
+
+      switch (event.code) {
+        case "ArrowUp":
+        case "KeyW":
+          this.moveForward = true;
+          break;
+
+        case "ArrowLeft":
+        case "KeyA":
+          this.moveLeft = true;
+          break;
+
+        case "ArrowDown":
+        case "KeyS":
+          this.moveBackward = true;
+          break;
+
+        case "ArrowRight":
+        case "KeyD":
+          this.moveRight = true;
+          break;
+
+        case "Space":
+          if (this.canJump === true) this.velocity.y += 350;
+          this.canJump = false;
+          break;
+      }
+    };
+
+    const onKeyUp = (event) => {
+      event.preventDefault();
+
+      switch (event.code) {
+        case "ArrowUp":
+        case "KeyW":
+          this.moveForward = false;
+          break;
+
+        case "ArrowLeft":
+        case "KeyA":
+          this.moveLeft = false;
+          break;
+
+        case "ArrowDown":
+        case "KeyS":
+          this.moveBackward = false;
+          break;
+
+        case "ArrowRight":
+        case "KeyD":
+          this.moveRight = false;
+          break;
+      }
+    };
+
+    document.addEventListener("keydown", onKeyDown);
+    document.addEventListener("keyup", onKeyUp);
+
+    this.raycaster = new Raycaster(new Vector3(), new Vector3(0, -1, 0), 0, 10);
   }
 
   _createTrackballControls() {
@@ -187,45 +270,104 @@ export class Canvas extends LitElement {
   }
 
   _loadMap() {
-    const mapFile =
-      "https://rodones.fra1.digitaloceanspaces.com/map/meshes/" +
-      (new URL(window.location).searchParams.get("model") || "sonnn.nxs");
+    if (this.model.endsWith(".nxs") || this.model.endsWith(".nxz")) {
+      /* An appropriate material can be used as optional fifth arg for the NexusObject constructor */
+      let material = false;
+      /* Material customizations examples: */
+      //let material = new PointsMaterial( {  size:3, color: 0x00ff00, transparent: false, opacity:0.25 } );
+      //let material = new MeshLambertMaterial( { color: 0xff0000, vertexColors: VertexColors } );
+      //let material = new MeshNormalMaterial({ flatShading: true });
 
-    /* An appropriate material can be used as optional fifth arg for the NexusObject constructor */
-    let material = false;
-    /* Material customizations examples: */
-    //let material = new PointsMaterial( {  size:3, color: 0x00ff00, transparent: false, opacity:0.25 } );
-    //let material = new MeshLambertMaterial( { color: 0xff0000, vertexColors: VertexColors } );
-    //let material = new MeshNormalMaterial({ flatShading: true });
+      this.scene.add(
+        new NexusObject(
+          this.model,
+          (obj) => {
+            // const s = 1 / nexusObj.geometry.boundingSphere.radius;
+            // const target = new Vector3();
+            // const p = nexusObj.geometry.boundingBox.getCenter(target).negate();
+            // nexusObj.position.set(p.x * s, p.y * s, p.z * s);
+            // nexusObj.scale.set(s, s, s);
+            // nexusObj.rotation.y = Math.PI / 2;
+            //	nexus_obj.material = new PointsMaterial( {  size:3, color: 0x00ff00, transparent: false, opacity:0.25 } );
 
-    this.scene.add(
-      new NexusObject(
-        mapFile,
-        (nexusObj) => {
-          const s = 1 / nexusObj.geometry.boundingSphere.radius;
-          const target = new Vector3();
-          const p = nexusObj.geometry.boundingBox.getCenter(target).negate();
-          nexusObj.position.set(p.x * s, p.y * s, p.z * s);
-          nexusObj.scale.set(s, s, s);
-          nexusObj.rotation.x = Math.PI;
-          //	nexus_obj.material = new PointsMaterial( {  size:3, color: 0x00ff00, transparent: false, opacity:0.25 } );
-          this.reDraw = true;
-        },
-        () => {
-          this.reDraw = true;
-        },
-        this.renderer,
-        material,
-      ),
-    );
+            obj.scale.set(1, 1, 1);
+            obj.position.set(0, 0, 0);
+            this.reDraw = true;
+          },
+          () => {
+            this.reDraw = true;
+          },
+          this.renderer,
+          material,
+        ),
+      );
+    } else if (this.model.endsWith(".ply")) {
+      const loader = new PLYLoader();
+      loader.load(this.model, (geometry) => {
+        const obj = new Mesh(geometry);
+        obj.position.set(0, 0, 0);
+        this.scene.add(obj);
+        this.reDraw = true;
+      });
+    }
   }
 
   _animate() {
     requestAnimationFrame(this._animate.bind(this));
-    this.controls.update();
-    if (this.reDraw) {
+
+    if (this.controlType === "pointer-lock") {
+      if (this.controls.isLocked) {
+        const time = performance.now();
+
+        this.raycaster.ray.origin.copy(this.controls.getObject().position);
+        this.raycaster.ray.origin.y -= 10;
+
+        // const intersections = this.raycaster.intersectObjects(objects, false);
+
+        // const onObject = intersections.length > 0;
+
+        const delta = (time - this.prevTime) / 1000;
+
+        this.velocity.x -= this.velocity.x * 10.0 * delta;
+        this.velocity.z -= this.velocity.z * 10.0 * delta;
+
+        this.velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
+
+        this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
+        this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
+        this.direction.normalize(); // this ensures consistent movements in all directions
+
+        if (this.moveForward || this.moveBackward)
+          this.velocity.z -= this.direction.z * 400.0 * delta;
+        if (this.moveLeft || this.moveRight)
+          this.velocity.x -= this.direction.x * 400.0 * delta;
+
+        // if (onObject === true) {
+        //   this.velocity.y = Math.max(0, this.velocity.y);
+        //   this.canJump = true;
+        // }
+
+        this.controls.moveRight(-this.velocity.x * delta);
+        this.controls.moveForward(-this.velocity.z * delta);
+
+        this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
+
+        if (this.controls.getObject().position.y < 10) {
+          this.velocity.y = 0;
+          this.controls.getObject().position.y = 10;
+
+          this.canJump = true;
+        }
+        this.prevTime = time;
+      }
+
       this.renderer.render(this.scene, this.camera);
-      this.reDraw = false;
+    } else {
+      this.controls.update();
+      if (this.reDraw) {
+        this.renderer.render(this.scene, this.camera);
+        this.reDraw = false;
+      }
     }
   }
 
@@ -250,7 +392,6 @@ export class Canvas extends LitElement {
   }
 
   render() {
-    console.log("canvas rendering");
     return html`<canvas id="canvas" ${ref(this.canvasRef)}></canvas>`;
   }
 }
