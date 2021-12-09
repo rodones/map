@@ -13,9 +13,9 @@ const createApp = () => {
 
   const modelBase =
     modelBases[searchParams.get("from")] || modelBases["digitalocean"];
-  const modelName = searchParams.get("model") || "sonnn.nxs";
+  const modelName = searchParams.get("model") || "birlesik.nxz";
 
-  const controlType = searchParams.get("control") || "trackball";
+  const controlType = searchParams.get("control") || "pointer-lock";
   const model = modelBase + modelName;
 
   const requireds = [];
