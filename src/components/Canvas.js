@@ -63,7 +63,7 @@ export class Canvas extends LitElement {
 
   _createScene() {
     this.scene = new Scene();
-    this.scene.background = new Color(0x000000);
+    this.scene.background = new Color(0, 0, 0);
     this.scene.fog = new Fog(0x050505, 2000, 3500);
     this.scene.add(new AmbientLight(0x444444));
 
@@ -99,7 +99,8 @@ export class Canvas extends LitElement {
       1,
       2000,
     );
-    this.camera.position.z = 2;
+    this.camera.position.set(20, -10, 20);
+    this.camera.rotation.set(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2);
   }
 
   _createControls() {
@@ -220,7 +221,12 @@ export class Canvas extends LitElement {
     document.addEventListener("keydown", onKeyDown);
     document.addEventListener("keyup", onKeyUp);
 
-    this.raycaster = new Raycaster(new Vector3(), new Vector3(0, -1, 0), 0, 10);
+    this.raycaster = new Raycaster(
+      new Vector3(),
+      new Vector3(-1, -1, -1),
+      0,
+      10,
+    );
   }
 
   _createTrackballControls() {
@@ -290,7 +296,7 @@ export class Canvas extends LitElement {
             // nexusObj.rotation.y = Math.PI / 2;
             //	nexus_obj.material = new PointsMaterial( {  size:3, color: 0x00ff00, transparent: false, opacity:0.25 } );
 
-            obj.scale.set(1, 1, 1);
+            // obj.scale.set(5, 5, 5);
             obj.position.set(0, 0, 0);
             this.reDraw = true;
           },
@@ -328,8 +334,8 @@ export class Canvas extends LitElement {
 
         const delta = (time - this.prevTime) / 1000;
 
-        this.velocity.x -= this.velocity.x * 10.0 * delta;
-        this.velocity.z -= this.velocity.z * 10.0 * delta;
+        this.velocity.x -= this.velocity.x * delta;
+        this.velocity.z -= this.velocity.z * delta;
 
         this.velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
 
