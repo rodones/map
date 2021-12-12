@@ -2,7 +2,7 @@ import { LitElement, html, css } from "lit";
 import { ref, createRef } from "lit/directives/ref.js";
 import {
   AmbientLight,
-  // DirectionalLight,
+  DirectionalLight,
   Fog,
   PerspectiveCamera,
   Scene,
@@ -67,13 +67,13 @@ export class Canvas extends LitElement {
     this.scene.fog = new Fog(0x050505, 2000, 3500);
     this.scene.add(new AmbientLight(0x444444));
 
-    // const light1 = new DirectionalLight(0xffffff, 1.0);
-    // light1.position.set(1, 1, -1);
-    // this.scene.add(light1);
+    const light1 = new DirectionalLight(0xffffff, 1.0);
+    light1.position.set(1, 1, -1);
+    this.scene.add(light1);
 
-    // const light2 = new DirectionalLight(0xffffff, 1.0);
-    // light2.position.set(-1, -1, 1);
-    // this.scene.add(light2);
+    const light2 = new DirectionalLight(0xffffff, 1.0);
+    light2.position.set(-1, -1, 1);
+    this.scene.add(light2);
 
     this.scene.add(new AxesHelper(5));
   }
