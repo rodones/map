@@ -330,12 +330,12 @@ export class Canvas extends LitElement {
         this.raycaster.ray.origin.copy(this.controls.getObject().position);
         this.raycaster.ray.origin.y -= 10;
 
-        const intersections = this.scene
-          .getObjectByName("MAP_START")
-          .raycast(this.raycaster, this.controls.getObject());
-        const onObject = intersections.length > 0;
+        const intersections = this.raycaster.intersectObjects(
+          [this.controls.getObject(), this.scene.getObjectByName("MAP_START")],
+          false,
+        );
 
-        console.log(onObject);
+        const onObject = intersections.length > 0;
 
         const delta = (time - this.prevTime) / 1000;
 
@@ -362,7 +362,7 @@ export class Canvas extends LitElement {
         this.controls.moveForward(-this.velocity.z * delta);
 
         this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
-        console.log(this.controls.getObject().position.y);
+
         this.prevTime = time;
       }
 
