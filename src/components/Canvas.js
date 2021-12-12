@@ -284,29 +284,31 @@ export class Canvas extends LitElement {
       //let material = new MeshLambertMaterial( { color: 0xff0000, vertexColors: VertexColors } );
       //let material = new MeshNormalMaterial({ flatShading: true });
 
-      this.scene.add(
-        new NexusObject(
-          this.model,
-          (obj) => {
-            // const s = 1 / nexusObj.geometry.boundingSphere.radius;
-            // const target = new Vector3();
-            // const p = nexusObj.geometry.boundingBox.getCenter(target).negate();
-            // nexusObj.position.set(p.x * s, p.y * s, p.z * s);
-            // nexusObj.scale.set(s, s, s);
-            // nexusObj.rotation.y = Math.PI / 2;
-            //	nexus_obj.material = new PointsMaterial( {  size:3, color: 0x00ff00, transparent: false, opacity:0.25 } );
+      var nexusObj = new NexusObject(
+        this.model,
+        (obj) => {
+          // const s = 1 / nexusObj.geometry.boundingSphere.radius;
+          // const target = new Vector3();
+          // const p = nexusObj.geometry.boundingBox.getCenter(target).negate();
+          // nexusObj.position.set(p.x * s, p.y * s, p.z * s);
+          // nexusObj.scale.set(s, s, s);
+          // nexusObj.rotation.y = Math.PI / 2;
+          //	nexus_obj.material = new PointsMaterial( {  size:3, color: 0x00ff00, transparent: false, opacity:0.25 } );
 
-            // obj.scale.set(5, 5, 5);
-            obj.position.set(0, 0, 0);
-            this.reDraw = true;
-          },
-          () => {
-            this.reDraw = true;
-          },
-          this.renderer,
-          material,
-        ),
+          // obj.scale.set(5, 5, 5);
+          obj.position.set(0, 0, 0);
+          this.reDraw = true;
+        },
+        () => {
+          this.reDraw = true;
+        },
+        this.renderer,
+        material,
       );
+
+      nexusObj.name = "MAP_START";
+
+      this.scene.add(nexusObj);
     } else if (this.model.endsWith(".ply")) {
       const loader = new PLYLoader();
       loader.load(this.model, (geometry) => {
@@ -328,12 +330,12 @@ export class Canvas extends LitElement {
         this.raycaster.ray.origin.copy(this.controls.getObject().position);
         this.raycaster.ray.origin.y -= 10;
 
-        const intersections = this.raycaster.intersectObjects(
-          [this.camera, this.controls.getObject()],
-          false,
-        );
-
+        const intersections = this.scene
+          .getObjectByName("MAP_START")
+          .raycast(this.raycaster, this.controls.getObject());
         const onObject = intersections.length > 0;
+
+        console.log(onObject);
 
         const delta = (time - this.prevTime) / 1000;
 
