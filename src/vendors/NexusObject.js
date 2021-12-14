@@ -304,27 +304,27 @@ export class NexusObject extends Mesh {
   
     if(distance == -1.0) return;
     intersects.push({ distance: distance, point: intersect, object: this} );
-    //return;
+    return;
 
     // Kept for reference, should we want to implement a raycasting on the higher resolution nodes 
-      var distance = -1.0;
-      for(var i = 0; i < nexus.sink; i++) {
-        var patch = nexus.nfirstpatch[i];
-        if(nexus.patches[patch*3] != nexus.sink)
-          continue;
-        var x = nexus.nspheres[i*5];
-        var y = nexus.nspheres[i*5+1];
-        var z = nexus.nspheres[i*5+2];
-        var r = nexus.nspheres[i*5+4]; //tight radius
-        var sphere = new Sphere(new Vector3(x, y, z), r);
-        if (ray.intersectsSphere( sphere ) != false ) {
-          var d = sphere.center.lengthSq();
-          if(distance == -1.0 || d < distance)
-            distance = d;
-        }
-      }
-      if(distance == -1.0) return;
-      intersects.push({ distance: distance, object: this} ); 
+      // var distance = -1.0;
+      // for(var i = 0; i < nexus.sink; i++) {
+      //   var patch = nexus.nfirstpatch[i];
+      //   if(nexus.patches[patch*3] != nexus.sink)
+      //     continue;
+      //   var x = nexus.nspheres[i*5];
+      //   var y = nexus.nspheres[i*5+1];
+      //   var z = nexus.nspheres[i*5+2];
+      //   var r = nexus.nspheres[i*5+4]; //tight radius
+      //   var sphere = new Sphere(new Vector3(x, y, z), r);
+      //   if (ray.intersectsSphere( sphere ) != false ) {
+      //     var d = sphere.center.lengthSq();
+      //     if(distance == -1.0 || d < distance)
+      //       distance = d;
+      //   }
+      // }
+      // if(distance == -1.0) return;
+      // intersects.push({ distance: distance, object: this} ); 
 
   }
 }
