@@ -94,12 +94,13 @@ export class Canvas extends LitElement {
     const canvas = this.canvasRef.value;
 
     this.camera = new PerspectiveCamera(
-      30,
+      60,
       canvas.offsetWidth / canvas.offsetHeight,
       1,
       2000,
     );
     this.camera.position.set(20, -10, 20);
+
     this.camera.rotation.set(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2);
   }
 
@@ -186,7 +187,7 @@ export class Canvas extends LitElement {
           break;
 
         case "Space":
-          if (this.canJump === true) this.velocity.y += 350;
+          if (this.canJump === true) this.velocity.y += 35;
           this.canJump = false;
           break;
       }
@@ -342,7 +343,7 @@ export class Canvas extends LitElement {
         this.velocity.x -= this.velocity.x * delta;
         this.velocity.z -= this.velocity.z * delta;
 
-        this.velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
+        this.velocity.y -= 10 * delta; // soar in the sky to the map
 
         this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
         this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
@@ -354,7 +355,7 @@ export class Canvas extends LitElement {
           this.velocity.x -= this.direction.x * 400.0 * delta;
 
         if (onObject === true) {
-          this.velocity.y = Math.max(0, this.velocity.y);
+          this.velocity.y = this.velocity.y = Math.max(0, this.velocity.y);
           this.canJump = true;
         }
 
