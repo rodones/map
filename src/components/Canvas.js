@@ -355,7 +355,7 @@ export class Canvas extends LitElement {
           this.velocity.x -= this.direction.x * 400.0 * delta;
 
         if (onObject === true) {
-          this.velocity.y = this.velocity.y = Math.max(0, this.velocity.y);
+          this.velocity.y = 0; //Math.max(0, this.velocity.y);
           this.canJump = true;
         }
 
