@@ -35,6 +35,29 @@ export class Canvas extends LitElement {
       width: 100%;
       height: 100%;
     }
+
+    .blocker {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+    }
+
+    .instructions {
+      width: 100%;
+      height: 100%;
+
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      text-align: center;
+      font-size: 14px;
+      cursor: pointer;
+
+      color: whitesmoke;
+    }
   `;
 
   static properties = {
@@ -43,6 +66,8 @@ export class Canvas extends LitElement {
   };
 
   canvasRef = createRef();
+  blockerRef = createRef();
+  instructionsRef = createRef();
 
   constructor() {
     super();
@@ -124,6 +149,8 @@ export class Canvas extends LitElement {
 
   _createPointerLockControls() {
     const canvas = this.canvasRef.value;
+    const blocker = this.blockerRef.value;
+    const instructions = this.instructionsRef.value;
 
     this.moveForward = false;
     this.moveBackward = false;
@@ -139,22 +166,16 @@ export class Canvas extends LitElement {
 
     this.controls = new PointerLockControls(this.camera, canvas);
 
-    const blocker = document.getElementById("blocker");
-    const instructions = document.getElementById("instructions");
-
     instructions.addEventListener("click", () => {
       this.controls.lock();
     });
 
     this.controls.addEventListener("lock", () => {
-      console.log("lock");
       instructions.style.display = "none";
       blocker.style.display = "none";
     });
 
     this.controls.addEventListener("unlock", () => {
-      console.log("unlock");
-
       blocker.style.display = "block";
       instructions.style.display = "";
     });
@@ -397,8 +418,29 @@ export class Canvas extends LitElement {
     );
   }
 
+  _renderBlocker() {
+    return html`<div class="blocker" ${ref(this.blockerRef)}>
+      <div class="instructions" ${ref(this.instructionsRef)}>
+        <p style="font-size:36px">Click to play</p>
+        <p>
+          Move: WASD<br />
+          Jump: SPACE<br />
+          Look: MOUSE
+        </p>
+      </div>
+    </div>`;
+  }
+
   render() {
-    return html`<canvas id="canvas" ${ref(this.canvasRef)}></canvas>`;
+    const result = [];
+
+    if (this.controlType === "pointer-lock") {
+      result.push(this._renderBlocker());
+    }
+
+    result.push(html`<canvas ${ref(this.canvasRef)}></canvas>`);
+
+    return result;
   }
 }
 

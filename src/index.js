@@ -18,22 +18,7 @@ const createApp = () => {
   const controlType = searchParams.get("control") || "pointer-lock";
   const model = modelBase + modelName;
 
-  const requireds = [];
-  if (controlType === "pointer-lock") {
-    requireds.push(html`<div id="blocker">
-      <div id="instructions">
-        <p style="font-size:36px">Click to play</p>
-        <p>
-          Move: WASD<br />
-          Jump: SPACE<br />
-          Look: MOUSE
-        </p>
-      </div>
-    </div>`);
-  }
-
-  return html`${requireds}
-    <rodo-sidebar>
+  return html`<rodo-sidebar>
       <rodo-sidebar-button
         text="A"
         title="an example action button a"
