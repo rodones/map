@@ -25,10 +25,9 @@ import { PLYLoader } from "../vendors/PLYLoader";
 export class Canvas extends LitElement {
   static styles = css`
     :host {
-      display: table-cell;
-      width: auto;
+      display: block;
+      width: 100%;
       height: 100%;
-      vertical-align: top;
     }
 
     canvas {
@@ -75,7 +74,19 @@ export class Canvas extends LitElement {
     this.reDraw = false;
   }
 
+  connectedCallback() {
+    super.connectedCallback();
+    console.log("c");
+  }
+
+  disconnectedCallback() {
+    super.disconnectedCallback();
+    console.log("d");
+  }
+
   firstUpdated() {
+    console.log("f");
+
     if (!this.model) throw new Error("model cannot be empty!");
 
     this._createScene();
@@ -432,6 +443,7 @@ export class Canvas extends LitElement {
   }
 
   render() {
+    console.log("r");
     const result = [];
 
     if (this.controlType === "pointer-lock") {
