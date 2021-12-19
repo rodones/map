@@ -14,13 +14,10 @@ const createApp = () => {
     modelBases[searchParams.get("from")] ?? modelBases["digitalocean"];
   const modelName = searchParams.get("model") ?? "birlesik.nxz";
 
-  const controlType = searchParams.get("control") ?? "pointer-lock";
+  const control = searchParams.get("control") ?? "pointer-lock";
   const model = modelBase + modelName;
 
-  return html`<rodo-app
-    control-type="${controlType}"
-    model="${model}"
-  ></rodo-app>`;
+  return html`<rodo-app control="${control}" model="${model}"></rodo-app>`;
 };
 
 window.onload = () => {
