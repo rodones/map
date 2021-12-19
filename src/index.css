@@ -6,10 +6,3 @@ body {
   overflow: hidden;
   background-color: black;
 }
-
-#root {
-  display: table;
-  width: 100%;
-  height: 100%;
-}
-

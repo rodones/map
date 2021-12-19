@@ -444,5 +444,4 @@ export class Canvas extends LitElement {
   }
 }
 
-export const registerCanvas = () =>
-  window.customElements.define("rodo-canvas", Canvas);
+window.customElements.define("rodo-canvas", Canvas);

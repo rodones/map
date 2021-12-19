@@ -26,5 +26,4 @@ export class Sidebar extends LitElement {
   }
 }
 
-export const registerSidebar = () =>
-  window.customElements.define("rodo-sidebar", Sidebar);
+window.customElements.define("rodo-sidebar", Sidebar);

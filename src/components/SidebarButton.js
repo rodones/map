@@ -28,5 +28,4 @@ export class SidebarButton extends LitElement {
   }
 }
 
-export const registerSidebarButton = () =>
-  window.customElements.define("rodo-sidebar-button", SidebarButton);
+window.customElements.define("rodo-sidebar-button", SidebarButton);
