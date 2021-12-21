@@ -131,6 +131,10 @@ export class Canvas extends LitElement {
     this.moveLeft = false;
     this.moveRight = false;
     this.canJump = false;
+    this.canWalk = false;
+    this.runOffset = 1;
+    this.walkOrbit = 0;
+    this.walkOffset = 1;
 
     this.prevTime = performance.now();
     this.velocity = new Vector3();
@@ -169,23 +173,28 @@ export class Canvas extends LitElement {
         case "ArrowUp":
         case "KeyW":
           this.moveForward = true;
+          this.canWalk = true;
           break;
 
         case "ArrowLeft":
         case "KeyA":
           this.moveLeft = true;
+          this.canWalk = true;
           break;
 
         case "ArrowDown":
         case "KeyS":
           this.moveBackward = true;
+          this.canWalk = true;
           break;
 
         case "ArrowRight":
         case "KeyD":
           this.moveRight = true;
           break;
-
+        case "ShiftLeft":
+          this.runOffset = 3;
+          break;
         case "Space":
           if (this.canJump === true) this.velocity.y += 35;
           this.canJump = false;
@@ -200,21 +209,28 @@ export class Canvas extends LitElement {
         case "ArrowUp":
         case "KeyW":
           this.moveForward = false;
+          this.canWalk = false;
           break;
 
         case "ArrowLeft":
         case "KeyA":
           this.moveLeft = false;
+          this.canWalk = false;
           break;
 
         case "ArrowDown":
         case "KeyS":
           this.moveBackward = false;
+          this.canWalk = false;
           break;
 
         case "ArrowRight":
         case "KeyD":
           this.moveRight = false;
+          this.canWalk = false;
+          break;
+        case "ShiftLeft":
+          this.runOffset = 1;
           break;
       }
     };
@@ -228,6 +244,13 @@ export class Canvas extends LitElement {
       0,
       10,
     );
+  }
+
+  _walk(position, delta) {
+    position.x += delta * this.walkOrbit;
+    position.y += delta * this.walkOrbit;
+    this.walkOrbit += this.walkOffset;
+    if (10 < this.walkOrbit || this.walkOrbit < -10) this.walkOffset *= -1;
   }
 
   _createTrackballControls() {
@@ -350,19 +373,23 @@ export class Canvas extends LitElement {
         this.direction.normalize(); // this ensures consistent movements in all directions
 
         if (this.moveForward || this.moveBackward)
-          this.velocity.z -= this.direction.z * 400.0 * delta;
+          this.velocity.z = this.direction.z * 1200.0 * delta * this.runOffset;
         if (this.moveLeft || this.moveRight)
-          this.velocity.x -= this.direction.x * 400.0 * delta;
+          this.velocity.x = this.direction.x * 1200.0 * delta * this.runOffset;
 
         if (onObject === true) {
           this.velocity.y = 0; //Math.max(0, this.velocity.y);
           this.canJump = true;
         }
 
-        this.controls.moveRight(-this.velocity.x * delta);
-        this.controls.moveForward(-this.velocity.z * delta);
+        this.controls.moveRight(this.velocity.x * delta);
+        this.controls.moveForward(this.velocity.z * delta);
 
         this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
+
+        if (this.canWalk) {
+          this._walk(this.controls.getObject().position, delta);
+        }
 
         this.prevTime = time;
       }
