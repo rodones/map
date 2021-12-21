@@ -252,6 +252,8 @@ export class NexusObject extends Mesh {
     var nexus = this.geometry.instance.mesh;
     if(!nexus.sphere) return;
   
+    if(!nexus.sink || !nexus.basei) return;
+
     var c = nexus.sphere.center;
     var r = nexus.sphere.radius;
     var center = new Vector3(c[0], c[1], c[2]);
@@ -266,65 +268,36 @@ export class NexusObject extends Mesh {
     if(!intersect)
       return;
   
-    if(!nexus.sink || !nexus.basei) {
-      //return;
-      //no mesh loaded, we can still use the sphere.
-      intersect.applyMatrix4(this.matrixWorld);
-      var d = intersect.distanceTo(raycaster.ray.origin);
-      if(d < raycaster.near || d > raycaster.far )  
+    var vert = nexus.basev;
+    var face = nexus.basei;
+
+    let A = new Vector3(0, 0, 0);
+    let B = new Vector3(0, 0, 0);
+    let C = new Vector3(0, 0, 0);
+    for(var j = 0; j < nexus.basei.length; j += 3) {
+      var a = face[j];
+      var b = face[j+1];
+      var c = face[j+2];
+      A.set(vert[a*3], vert[a*3+1], vert[a*3+2]);
+      B.set(vert[b*3], vert[b*3+1], vert[b*3+2]);
+      C.set(vert[c*3], vert[c*3+1], vert[c*3+2]);
+      //TODO use material to determine if using doubleface or not!
+      var hit = ray.intersectTriangle( C, B, A, false, point ); 
+      if(!hit) continue;
+
+      //check distances in world space
+      hit.applyMatrix4(this.matrixWorld);
+      var d = hit.distanceTo(raycaster.ray.origin);
+      if(d < raycaster.near || d > raycaster.far ) continue;
+      if(distance == -1.0 || d < distance) {
         distance = d;
-    } else {
-      var vert = nexus.basev;
-      var face = nexus.basei;
-  
-      let A = new Vector3(0, 0, 0);
-      let B = new Vector3(0, 0, 0);
-      let C = new Vector3(0, 0, 0);
-      for(var j = 0; j < nexus.basei.length; j += 3) {
-        var a = face[j];
-        var b = face[j+1];
-        var c = face[j+2];
-        A.set(vert[a*3], vert[a*3+1], vert[a*3+2]);
-        B.set(vert[b*3], vert[b*3+1], vert[b*3+2]);
-        C.set(vert[c*3], vert[c*3+1], vert[c*3+2]);
-        //TODO use material to determine if using doubleface or not!
-        var hit = ray.intersectTriangle( C, B, A, false, point ); 
-        if(!hit) continue;
-  
-        //check distances in world space
-        hit.applyMatrix4(this.matrixWorld);
-        var d = hit.distanceTo(raycaster.ray.origin);
-        if(d < raycaster.near || d > raycaster.far ) continue;
-        if(distance == -1.0 || d < distance) {
-          distance = d;
-          intersect = hit;
-        }
+        intersect = hit;
       }
     }
+    
   
     if(distance == -1.0) return;
     intersects.push({ distance: distance, point: intersect, object: this} );
     return;
-
-    // Kept for reference, should we want to implement a raycasting on the higher resolution nodes 
-      // var distance = -1.0;
-      // for(var i = 0; i < nexus.sink; i++) {
-      //   var patch = nexus.nfirstpatch[i];
-      //   if(nexus.patches[patch*3] != nexus.sink)
-      //     continue;
-      //   var x = nexus.nspheres[i*5];
-      //   var y = nexus.nspheres[i*5+1];
-      //   var z = nexus.nspheres[i*5+2];
-      //   var r = nexus.nspheres[i*5+4]; //tight radius
-      //   var sphere = new Sphere(new Vector3(x, y, z), r);
-      //   if (ray.intersectsSphere( sphere ) != false ) {
-      //     var d = sphere.center.lengthSq();
-      //     if(distance == -1.0 || d < distance)
-      //       distance = d;
-      //   }
-      // }
-      // if(distance == -1.0) return;
-      // intersects.push({ distance: distance, object: this} ); 
-
   }
 }
