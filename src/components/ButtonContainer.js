@@ -79,21 +79,38 @@ export class ButtonContainer extends LitElement {
     }
   `;
 
+  static #alignValues = Object.freeze(["right", "center", "left"]);
+  static #positionValues = Object.freeze(["top", "right", "bottom", "left"]);
+
   constructor() {
     super();
     this.align = "center";
   }
 
   connectedCallback() {
-    if (!["top", "right", "bottom", "left"].includes(this.position))
-      throw Error("invalid prop");
-    if (!["right", "center", "left"].includes(this.align))
-      throw Error("invalid prop");
+    if (!this.constructor.#alignValues.includes(this.align))
+      throw Error(
+        `The 'align' property accepts only ${this.constructor.#positionValues
+          .map((v) => `'${v}'`)
+          .join(", ")} but '${this.align}' was passed.`,
+      );
+
+    if (!this.constructor.#positionValues.includes(this.position))
+      throw Error(
+        `The 'position' property accepts only ${this.constructor.#positionValues
+          .map((v) => `'${v}'`)
+          .join(", ")} but '${this.position}' was passed.`,
+      );
+
     super.connectedCallback();
   }
 
+  #getClassName() {
+    return `p-${this.position} ${`s-${this.align}`}`;
+  }
+
   render() {
-    return html`<div class="${`p-${this.position} ${`s-${this.align}`}`}">
+    return html`<div class="${this.#getClassName()}">
       <slot></slot>
     </div>`;
   }
