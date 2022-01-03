@@ -71,7 +71,7 @@ export class MapBaseController {
     const canvas = this.getCanvas();
 
     this.camera = new PerspectiveCamera(
-      30,
+      60,
       canvas.offsetWidth / canvas.offsetHeight,
       1,
       2000,
@@ -84,7 +84,6 @@ export class MapBaseController {
     const material = new MeshBasicMaterial({
       color: true,
       vertexColors: true,
-      faceColors: true,
     });
 
     if (this.host.model.endsWith(".nxs") || this.host.model.endsWith(".nxz")) {
@@ -92,6 +91,7 @@ export class MapBaseController {
         new NexusObject(
           this.host.model,
           (obj) => {
+            obj.name = "MAP_START";
             obj.position.set(0, 0, 0);
             this.reDraw = true;
           },
@@ -106,6 +106,7 @@ export class MapBaseController {
       const loader = new PLYLoader();
       loader.load(this.host.model, (geometry) => {
         const obj = new Mesh(geometry, material);
+        obj.name = "MAP_START";
         obj.position.set(0, 0, 0);
         this.scene.add(obj);
         this.reDraw = true;
@@ -160,6 +161,9 @@ export const PointerLockControlExtender = {
     this.moveLeft = false;
     this.moveRight = false;
     this.canJump = false;
+    this.runOffset = 1;
+    this.walkOrbit = 0;
+    this.walkOffset = 1;
 
     this.prevTime = performance.now();
     this.velocity = new Vector3();
@@ -197,25 +201,30 @@ export const PointerLockControlExtender = {
         case "ArrowUp":
         case "KeyW":
           this.moveForward = true;
+          this.canWalk = true;
           break;
 
         case "ArrowLeft":
         case "KeyA":
           this.moveLeft = true;
+          this.canWalk = true;
           break;
 
         case "ArrowDown":
         case "KeyS":
           this.moveBackward = true;
+          this.canWalk = true;
           break;
 
         case "ArrowRight":
         case "KeyD":
           this.moveRight = true;
           break;
-
+        case "ShiftLeft":
+          this.runOffset = 3;
+          break;
         case "Space":
-          if (this.canJump === true) this.velocity.y += 350;
+          if (this.canJump === true) this.velocity.y += 35;
           this.canJump = false;
           break;
       }
@@ -227,21 +236,28 @@ export const PointerLockControlExtender = {
         case "ArrowUp":
         case "KeyW":
           this.moveForward = false;
+          this.canWalk = false;
           break;
 
         case "ArrowLeft":
         case "KeyA":
           this.moveLeft = false;
+          this.canWalk = false;
           break;
 
         case "ArrowDown":
         case "KeyS":
           this.moveBackward = false;
+          this.canWalk = false;
           break;
 
         case "ArrowRight":
         case "KeyD":
           this.moveRight = false;
+          this.canWalk = false;
+          break;
+        case "ShiftLeft":
+          this.runOffset = 1;
           break;
       }
     };
@@ -256,6 +272,12 @@ export const PointerLockControlExtender = {
       10,
     );
   },
+  _walk(position, delta) {
+    position.x += delta * this.walkOrbit;
+    position.y += delta * this.walkOrbit;
+    this.walkOrbit += this.walkOffset;
+    if (10 < this.walkOrbit || this.walkOrbit < -10) this.walkOffset *= -1;
+  },
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
 
@@ -265,42 +287,44 @@ export const PointerLockControlExtender = {
       this.raycaster.ray.origin.copy(this.controls.getObject().position);
       this.raycaster.ray.origin.y -= 10;
 
-      // const intersections = this.raycaster.intersectObjects(objects, false);
+      const intersections = this.raycaster.intersectObjects(
+        [this.controls.getObject(), this.scene.getObjectByName("MAP_START")],
+        false,
+      );
 
-      // const onObject = intersections.length > 0;
+      const onObject = intersections.length > 0;
 
       const delta = (time - this.prevTime) / 1000;
 
       this.velocity.x -= this.velocity.x * delta;
       this.velocity.z -= this.velocity.z * delta;
 
-      this.velocity.y -= 9.8 * 100.0 * delta; // 100.0 = mass
+      this.velocity.y -= 10 * delta; // soar in the sky to the map
 
       this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
       this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
       this.direction.normalize(); // this ensures consistent movements in all directions
 
       if (this.moveForward || this.moveBackward)
-        this.velocity.z -= this.direction.z * 400.0 * delta;
+        this.velocity.z = this.direction.z * 1200.0 * delta * this.runOffset;
       if (this.moveLeft || this.moveRight)
-        this.velocity.x -= this.direction.x * 400.0 * delta;
+        this.velocity.x = this.direction.x * 1200.0 * delta * this.runOffset;
 
-      // if (onObject === true) {
-      //   this.velocity.y = Math.max(0, this.velocity.y);
-      //   this.canJump = true;
-      // }
+      if (onObject === true) {
+        this.velocity.y = intersections[0].distance;
+        if (this.velocity.x < 1 && this.velocity.z < 1) this.velocity.y = 0;
+        this.canJump = true;
+      }
 
-      this.controls.moveRight(-this.velocity.x * delta);
-      this.controls.moveForward(-this.velocity.z * delta);
+      this.controls.moveRight(this.velocity.x * delta);
+      this.controls.moveForward(this.velocity.z * delta);
 
       this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
 
-      if (this.controls.getObject().position.y < 10) {
-        this.velocity.y = 0;
-        this.controls.getObject().position.y = 10;
-
-        this.canJump = true;
+      if (this.canWalk) {
+        this._walk(this.controls.getObject().position, delta);
       }
+
       this.prevTime = time;
     }
 
