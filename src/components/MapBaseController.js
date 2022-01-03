@@ -10,6 +10,7 @@ import {
   Mesh,
   AxesHelper,
   Raycaster,
+  MeshBasicMaterial,
 } from "three";
 import {
   MapControls,
@@ -80,6 +81,12 @@ export class MapBaseController {
   }
 
   loadMap() {
+    const material = new MeshBasicMaterial({
+      color: true,
+      vertexColors: true,
+      faceColors: true,
+    });
+
     if (this.host.model.endsWith(".nxs") || this.host.model.endsWith(".nxz")) {
       this.scene.add(
         new NexusObject(
@@ -92,13 +99,13 @@ export class MapBaseController {
             this.reDraw = true;
           },
           this.renderer,
-          false,
+          material,
         ),
       );
     } else if (this.host.model.endsWith(".ply")) {
       const loader = new PLYLoader();
       loader.load(this.host.model, (geometry) => {
-        const obj = new Mesh(geometry);
+        const obj = new Mesh(geometry, material);
         obj.position.set(0, 0, 0);
         this.scene.add(obj);
         this.reDraw = true;
