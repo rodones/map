@@ -40,7 +40,7 @@ export class MapBaseController {
 
   createScene() {
     this.scene = new Scene();
-    this.scene.background = new Color(0, 0, 0);
+    this.scene.background = new Color(0x0073b6);
     this.scene.fog = new Fog(0x050505, 2000, 3500);
     this.scene.add(new AmbientLight(0x444444));
 
