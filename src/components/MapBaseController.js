@@ -165,6 +165,8 @@ export const PointerLockControlExtender = {
     this.walkOrbit = 0;
     this.walkOffset = 1;
 
+    this.gravityOffset = 10;
+
     this.prevTime = performance.now();
     this.velocity = new Vector3();
     this.direction = new Vector3();
@@ -297,7 +299,7 @@ export const PointerLockControlExtender = {
       this.velocity.x -= this.velocity.x * delta;
       this.velocity.z -= this.velocity.z * delta;
 
-      this.velocity.y -= 10 * delta; // soar in the sky to the map
+      // soar in the sky to the map
 
       this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
       this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
@@ -312,6 +314,8 @@ export const PointerLockControlExtender = {
         this.velocity.y = intersections[0].distance;
         if (this.velocity.x < 1 && this.velocity.z < 1) this.velocity.y = 0;
         this.canJump = true;
+      } else {
+        this.velocity.y -= this.gravityOffset * delta;
       }
 
       this.controls.moveRight(this.velocity.x * delta);
