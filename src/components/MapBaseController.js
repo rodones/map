@@ -269,7 +269,7 @@ export const PointerLockControlExtender = {
       new Vector3(),
       new Vector3(-1, -1, -1),
       0,
-      10,
+      2,
     );
   },
   _walk(position, delta) {
@@ -285,10 +285,9 @@ export const PointerLockControlExtender = {
       const time = performance.now();
 
       this.raycaster.ray.origin.copy(this.controls.getObject().position);
-
-      const intersections = this.raycaster.intersectObjects(
-        [this.controls.getObject(), this.scene.getObjectByName("MAP_START")],
-        false,
+      this.raycaster.ray.origin.y -= 5;
+      const intersections = this.raycaster.intersectObject(
+        this.scene.getObjectByName("MAP_START"),
       );
 
       const onObject = intersections.length > 0;
@@ -320,9 +319,9 @@ export const PointerLockControlExtender = {
 
       this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
 
-      if (this.canWalk) {
-        this._walk(this.controls.getObject().position, delta);
-      }
+      // if (this.canWalk) {
+      //   this._walk(this.controls.getObject().position, delta);
+      // }
 
       this.prevTime = time;
     }
