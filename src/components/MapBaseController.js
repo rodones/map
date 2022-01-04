@@ -285,7 +285,6 @@ export const PointerLockControlExtender = {
       const time = performance.now();
 
       this.raycaster.ray.origin.copy(this.controls.getObject().position);
-      this.raycaster.ray.origin.y -= 10;
 
       const intersections = this.raycaster.intersectObjects(
         [this.controls.getObject(), this.scene.getObjectByName("MAP_START")],
