@@ -226,7 +226,7 @@ export const PointerLockControlExtender = {
           this.runOffset = 3;
           break;
         case "Space":
-          if (this.canJump === true) this.velocity.y += 35;
+          if (this.canJump === true) this.velocity.y += 10;
           this.canJump = false;
           break;
       }
