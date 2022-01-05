@@ -1,4 +1,7 @@
-// SOURCE: https://github.com/mrdoob/three.js/blob/master/examples/jsm/controls/TrackballControls.js
+/**
+ * This code taken from threejs examples. It might be refactored or edit.
+ * Source: https://github.com/mrdoob/three.js/blob/master/examples/jsm/controls/TrackballControls.js
+ */
 
 import { EventDispatcher, MOUSE, Quaternion, Vector2, Vector3 } from "three";
 

@@ -24,6 +24,11 @@
  *
  */
 
+/**
+ * This code taken from threejs examples. It might be refactored or edit. 
+ * Source: https://github.com/mrdoob/three.js/blob/dev/examples/jsm/loaders/PLYLoader.js
+*/
+
 import { BufferGeometry, FileLoader, Float32BufferAttribute, Loader, LoaderUtils } from "three";
 
 export class PLYLoader extends Loader {
