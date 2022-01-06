@@ -226,7 +226,7 @@ export const PointerLockControlExtender = {
           this.runOffset = 3.5;
           break;
         case "Space":
-          if (this.canJump === true) this.velocity.y += 15;
+          if (this.canJump === true) this.velocity.y += 12;
           this.canJump = false;
           break;
       }
@@ -306,9 +306,9 @@ export const PointerLockControlExtender = {
       this.direction.normalize(); // this ensures consistent movements in all directions
 
       if (this.moveForward || this.moveBackward)
-        this.velocity.z = this.direction.z * 1200.0 * delta * this.runOffset;
+        this.velocity.z = this.direction.z * 900.0 * delta * this.runOffset;
       if (this.moveLeft || this.moveRight)
-        this.velocity.x = this.direction.x * 1200.0 * delta * this.runOffset;
+        this.velocity.x = this.direction.x * 900.0 * delta * this.runOffset;
 
       if (onObject === true) {
         this.velocity.y = intersections[0].distance;
