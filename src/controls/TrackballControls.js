@@ -9,6 +9,15 @@ const _changeEvent = { type: "change" };
 const _startEvent = { type: "start" };
 const _endEvent = { type: "end" };
 
+const TrackballState = Object.freeze({
+  NONE: -1,
+  ROTATE: 0,
+  ZOOM: 1,
+  PAN: 2,
+  TOUCH_ROTATE: 3,
+  TOUCH_ZOOM_PAN: 4,
+});
+
 class TrackballControls extends EventDispatcher {
   constructor(camera, element) {
     super();
@@ -16,18 +25,8 @@ class TrackballControls extends EventDispatcher {
     if (!camera) throw new Error("The parameter 'camera' is required!");
     if (!element) throw new Error("The parameter 'element' is required!");
 
-    this.STATE = {
-      NONE: -1,
-      ROTATE: 0,
-      ZOOM: 1,
-      PAN: 2,
-      TOUCH_ROTATE: 3,
-      TOUCH_ZOOM_PAN: 4,
-    };
-
     this.camera = camera;
     this.element = element;
-    this.element.style.touchAction = "none";
 
     this.enabled = true;
 
@@ -64,8 +63,8 @@ class TrackballControls extends EventDispatcher {
     this.lastPosition = new Vector3();
     this.lastZoom = 1;
 
-    this._state = this.STATE.NONE;
-    this._keyState = this.STATE.NONE;
+    this._state = TrackballState.NONE;
+    this._keyState = TrackballState.NONE;
     this._touchZoomDistanceStart = 0;
     this._touchZoomDistanceEnd = 0;
     this._lastAngle = 0;
@@ -86,25 +85,28 @@ class TrackballControls extends EventDispatcher {
     this.up0 = this.camera.up.clone();
     this.zoom0 = this.camera.zoom;
 
-    this.element.addEventListener("contextmenu", this.onContextMenu);
-
-    this.element.addEventListener("pointerdown", this.onPointerDown);
-    this.element.addEventListener("pointercancel", this.onPointerCancel);
-    this.element.addEventListener("wheel", this.onMouseWheel, {
-      passive: false,
-    });
-
-    window.addEventListener("keydown", this.onKeyDown);
-    window.addEventListener("keyup", this.onKeyUp);
-
-    this.handleResize();
+    this.element.style.touchAction = "none";
+    this.#registerEventListeners();
 
     // force an update at start
     this.update();
   }
 
+  #registerEventListeners() {
+    this.element.addEventListener("contextmenu", this.onContextMenu);
+    this.element.addEventListener("pointerdown", this.onPointerDown);
+    this.element.addEventListener("pointercancel", this.onPointerCancel);
+    this.element.addEventListener("wheel", this.onMouseWheel, {
+      passive: false,
+    });
+    window.addEventListener("keydown", this.onKeyDown);
+    window.addEventListener("keyup", this.onKeyUp);
+    window.addEventListener("resize", this.onResize);
+    this.onResize();
+  }
+
   onContextMenu = (event) => {
-    if (this.enabled) return;
+    if (this.enabled === false) return;
 
     event.preventDefault();
   };
@@ -173,14 +175,17 @@ class TrackballControls extends EventDispatcher {
     window.removeEventListener("keydown", this.onKeyDown);
     console.log(this._keyState, event.code);
 
-    if (this._keyState !== this.STATE.NONE) {
+    if (this._keyState !== TrackballState.NONE) {
       return;
-    } else if (event.code === this.keys[this.STATE.ROTATE] && !this.noRotate) {
-      this._keyState = this.STATE.ROTATE;
-    } else if (event.code === this.keys[this.STATE.ZOOM] && !this.noZoom) {
-      this._keyState = this.STATE.ZOOM;
-    } else if (event.code === this.keys[this.STATE.PAN] && !this.noPan) {
-      this._keyState = this.STATE.PAN;
+    } else if (
+      event.code === this.keys[TrackballState.ROTATE] &&
+      !this.noRotate
+    ) {
+      this._keyState = TrackballState.ROTATE;
+    } else if (event.code === this.keys[TrackballState.ZOOM] && !this.noZoom) {
+      this._keyState = TrackballState.ZOOM;
+    } else if (event.code === this.keys[TrackballState.PAN] && !this.noPan) {
+      this._keyState = TrackballState.PAN;
     }
 
     console.log(this._keyState, event.code);
@@ -191,41 +196,41 @@ class TrackballControls extends EventDispatcher {
 
     if (this.enabled === false) return;
 
-    this._keyState = this.STATE.NONE;
+    this._keyState = TrackballState.NONE;
 
     window.addEventListener("keydown", this.onKeyDown);
   };
 
   onMouseDown = (event) => {
-    if (this._state === this.STATE.NONE) {
+    if (this._state === TrackballState.NONE) {
       switch (event.button) {
         case this.mouseButtons.LEFT:
-          this._state = this.STATE.ROTATE;
+          this._state = TrackballState.ROTATE;
           break;
 
         case this.mouseButtons.MIDDLE:
-          this._state = this.STATE.ZOOM;
+          this._state = TrackballState.ZOOM;
           break;
 
         case this.mouseButtons.RIGHT:
-          this._state = this.STATE.PAN;
+          this._state = TrackballState.PAN;
           break;
 
         default:
-          this._state = this.STATE.NONE;
+          this._state = TrackballState.NONE;
       }
     }
 
     const state =
-      this._keyState !== this.STATE.NONE ? this._keyState : this._state;
+      this._keyState !== TrackballState.NONE ? this._keyState : this._state;
 
-    if (state === this.STATE.ROTATE && !this.noRotate) {
+    if (state === TrackballState.ROTATE && !this.noRotate) {
       this._moveCurr.copy(this.getMouseOnCircle(event.pageX, event.pageY));
       this._movePrev.copy(this._moveCurr);
-    } else if (state === this.STATE.ZOOM && !this.noZoom) {
+    } else if (state === TrackballState.ZOOM && !this.noZoom) {
       this._zoomStart.copy(this.getMouseOnScreen(event.pageX, event.pageY));
       this._zoomEnd.copy(this._zoomStart);
-    } else if (state === this.STATE.PAN && !this.noPan) {
+    } else if (state === TrackballState.PAN && !this.noPan) {
       this._panStart.copy(this.getMouseOnScreen(event.pageX, event.pageY));
       this._panEnd.copy(this._panStart);
     }
@@ -235,20 +240,20 @@ class TrackballControls extends EventDispatcher {
 
   onMouseMove = (event) => {
     const state =
-      this._keyState !== this.STATE.NONE ? this._keyState : this._state;
+      this._keyState !== TrackballState.NONE ? this._keyState : this._state;
 
-    if (state === this.STATE.ROTATE && !this.noRotate) {
+    if (state === TrackballState.ROTATE && !this.noRotate) {
       this._movePrev.copy(this._moveCurr);
       this._moveCurr.copy(this.getMouseOnCircle(event.pageX, event.pageY));
-    } else if (state === this.STATE.ZOOM && !this.noZoom) {
+    } else if (state === TrackballState.ZOOM && !this.noZoom) {
       this._zoomEnd.copy(this.getMouseOnScreen(event.pageX, event.pageY));
-    } else if (state === this.STATE.PAN && !this.noPan) {
+    } else if (state === TrackballState.PAN && !this.noPan) {
       this._panEnd.copy(this.getMouseOnScreen(event.pageX, event.pageY));
     }
   };
 
   onMouseUp = () => {
-    this._state = this.STATE.NONE;
+    this._state = TrackballState.NONE;
 
     this.dispatchEvent(_endEvent);
   };
@@ -286,7 +291,7 @@ class TrackballControls extends EventDispatcher {
 
     switch (this._pointers.length) {
       case 1:
-        this._state = this.STATE.TOUCH_ROTATE;
+        this._state = TrackballState.TOUCH_ROTATE;
         this._moveCurr.copy(
           this.getMouseOnCircle(
             this._pointers[0].pageX,
@@ -298,7 +303,7 @@ class TrackballControls extends EventDispatcher {
 
       default: {
         // 2 or more
-        this._state = this.STATE.TOUCH_ZOOM_PAN;
+        this._state = TrackballState.TOUCH_ZOOM_PAN;
         const dx = this._pointers[0].pageX - this._pointers[1].pageX;
         const dy = this._pointers[0].pageY - this._pointers[1].pageY;
         this._touchZoomDistanceEnd = this._touchZoomDistanceStart = Math.sqrt(
@@ -345,17 +350,17 @@ class TrackballControls extends EventDispatcher {
   onTouchEnd = (event) => {
     switch (this._pointers.length) {
       case 0:
-        this._state = this.STATE.NONE;
+        this._state = TrackballState.NONE;
         break;
 
       case 1:
-        this._state = this.STATE.TOUCH_ROTATE;
+        this._state = TrackballState.TOUCH_ROTATE;
         this._moveCurr.copy(this.getMouseOnCircle(event.pageX, event.pageY));
         this._movePrev.copy(this._moveCurr);
         break;
 
       case 2:
-        this._state = this.STATE.TOUCH_ZOOM_PAN;
+        this._state = TrackballState.TOUCH_ZOOM_PAN;
         this._moveCurr.copy(
           this.getMouseOnCircle(
             event.pageX - this._movePrev.pageX,
@@ -449,10 +454,10 @@ class TrackballControls extends EventDispatcher {
       let angle = moveDirection.length();
 
       if (angle) {
-        this._eye.copy(this.object.position).sub(this.target);
+        this._eye.copy(this.camera.position).sub(this.target);
 
         eyeDirection.copy(this._eye).normalize();
-        objectUpDirection.copy(this.object.up).normalize();
+        objectUpDirection.copy(this.camera.up).normalize();
         objectSidewaysDirection
           .crossVectors(objectUpDirection, eyeDirection)
           .normalize();
@@ -468,16 +473,16 @@ class TrackballControls extends EventDispatcher {
         quaternion.setFromAxisAngle(axis, angle);
 
         this._eye.applyQuaternion(quaternion);
-        this.object.up.applyQuaternion(quaternion);
+        this.camera.up.applyQuaternion(quaternion);
 
         this._lastAxis.copy(axis);
         this._lastAngle = angle;
       } else if (!this.staticMoving && this._lastAngle) {
         this._lastAngle *= Math.sqrt(1.0 - this.dynamicDampingFactor);
-        this._eye.copy(this.object.position).sub(this.target);
+        this._eye.copy(this.camera.position).sub(this.target);
         quaternion.setFromAxisAngle(this._lastAxis, this._lastAngle);
         this._eye.applyQuaternion(quaternion);
-        this.object.up.applyQuaternion(quaternion);
+        this.camera.up.applyQuaternion(quaternion);
       }
 
       this._movePrev.copy(this._moveCurr);
@@ -487,15 +492,15 @@ class TrackballControls extends EventDispatcher {
   zoomCamera = () => {
     let factor;
 
-    if (this._state === this.STATE.TOUCH_ZOOM_PAN) {
+    if (this._state === TrackballState.TOUCH_ZOOM_PAN) {
       factor = this._touchZoomDistanceStart / this._touchZoomDistanceEnd;
       this._touchZoomDistanceStart = this._touchZoomDistanceEnd;
 
-      if (this.object.isPerspectiveCamera) {
+      if (this.camera.isPerspectiveCamera) {
         this._eye.multiplyScalar(factor);
-      } else if (this.object.isOrthographicCamera) {
-        this.object.zoom /= factor;
-        this.object.updateProjectionMatrix();
+      } else if (this.camera.isOrthographicCamera) {
+        this.camera.zoom /= factor;
+        this.camera.updateProjectionMatrix();
       } else {
         console.warn("THREE.TrackballControls: Unsupported camera type");
       }
@@ -503,11 +508,11 @@ class TrackballControls extends EventDispatcher {
       factor = 1.0 + (this._zoomEnd.y - this._zoomStart.y) * this.zoomSpeed;
 
       if (factor !== 1.0 && factor > 0.0) {
-        if (this.object.isPerspectiveCamera) {
+        if (this.camera.isPerspectiveCamera) {
           this._eye.multiplyScalar(factor);
-        } else if (this.object.isOrthographicCamera) {
-          this.object.zoom /= factor;
-          this.object.updateProjectionMatrix();
+        } else if (this.camera.isOrthographicCamera) {
+          this.camera.zoom /= factor;
+          this.camera.updateProjectionMatrix();
         } else {
           console.warn("THREE.TrackballControls: Unsupported camera type");
         }
@@ -531,14 +536,14 @@ class TrackballControls extends EventDispatcher {
       mouseChange.copy(this._panEnd).sub(this._panStart);
 
       if (mouseChange.lengthSq()) {
-        if (this.object.isOrthographicCamera) {
+        if (this.camera.isOrthographicCamera) {
           const scale_x =
-            (this.object.right - this.object.left) /
-            this.object.zoom /
+            (this.camera.right - this.camera.left) /
+            this.camera.zoom /
             this.element.clientWidth;
           const scale_y =
-            (this.object.top - this.object.bottom) /
-            this.object.zoom /
+            (this.camera.top - this.camera.bottom) /
+            this.camera.zoom /
             this.element.clientWidth;
 
           mouseChange.x *= scale_x;
@@ -547,10 +552,10 @@ class TrackballControls extends EventDispatcher {
 
         mouseChange.multiplyScalar(this._eye.length() * this.panSpeed);
 
-        pan.copy(this._eye).cross(this.object.up).setLength(mouseChange.x);
-        pan.add(objectUp.copy(this.object.up).setLength(mouseChange.y));
+        pan.copy(this._eye).cross(this.camera.up).setLength(mouseChange.x);
+        pan.add(objectUp.copy(this.camera.up).setLength(mouseChange.y));
 
-        this.object.position.add(pan);
+        this.camera.position.add(pan);
         this.target.add(pan);
 
         if (this.staticMoving) {
@@ -569,7 +574,7 @@ class TrackballControls extends EventDispatcher {
   checkDistances = () => {
     if (!this.noZoom || !this.noPan) {
       if (this._eye.lengthSq() > this.maxDistance * this.maxDistance) {
-        this.object.position.addVectors(
+        this.camera.position.addVectors(
           this.target,
           this._eye.setLength(this.maxDistance),
         );
@@ -577,7 +582,7 @@ class TrackballControls extends EventDispatcher {
       }
 
       if (this._eye.lengthSq() < this.minDistance * this.minDistance) {
-        this.object.position.addVectors(
+        this.camera.position.addVectors(
           this.target,
           this._eye.setLength(this.minDistance),
         );
@@ -587,7 +592,7 @@ class TrackballControls extends EventDispatcher {
   };
 
   update = () => {
-    this._eye.subVectors(this.object.position, this.target);
+    this._eye.subVectors(this.camera.position, this.target);
 
     if (!this.noRotate) {
       this.rotateCamera();
@@ -601,31 +606,31 @@ class TrackballControls extends EventDispatcher {
       this.panCamera();
     }
 
-    this.object.position.addVectors(this.target, this._eye);
+    this.camera.position.addVectors(this.target, this._eye);
 
-    if (this.object.isPerspectiveCamera) {
+    if (this.camera.isPerspectiveCamera) {
       this.checkDistances();
 
-      this.object.lookAt(this.target);
+      this.camera.lookAt(this.target);
 
       if (
-        this.lastPosition.distanceToSquared(this.object.position) > this.EPS
+        this.lastPosition.distanceToSquared(this.camera.position) > this.EPS
       ) {
         this.dispatchEvent(_changeEvent);
 
-        this.lastPosition.copy(this.object.position);
+        this.lastPosition.copy(this.camera.position);
       }
-    } else if (this.object.isOrthographicCamera) {
-      this.object.lookAt(this.target);
+    } else if (this.camera.isOrthographicCamera) {
+      this.camera.lookAt(this.target);
 
       if (
-        this.lastPosition.distanceToSquared(this.object.position) > this.EPS ||
-        this.lastZoom !== this.object.zoom
+        this.lastPosition.distanceToSquared(this.camera.position) > this.EPS ||
+        this.lastZoom !== this.camera.zoom
       ) {
         this.dispatchEvent(_changeEvent);
 
-        this.lastPosition.copy(this.object.position);
-        this.lastZoom = this.object.zoom;
+        this.lastPosition.copy(this.camera.position);
+        this.lastZoom = this.camera.zoom;
       }
     } else {
       console.warn("THREE.TrackballControls: Unsupported camera type");
@@ -633,27 +638,27 @@ class TrackballControls extends EventDispatcher {
   };
 
   reset = () => {
-    this._state = this.STATE.NONE;
-    this._keyState = this.STATE.NONE;
+    this._state = TrackballState.NONE;
+    this._keyState = TrackballState.NONE;
 
     this.target.copy(this.target0);
-    this.object.position.copy(this.position0);
-    this.object.up.copy(this.up0);
-    this.object.zoom = this.zoom0;
+    this.camera.position.copy(this.position0);
+    this.camera.up.copy(this.up0);
+    this.camera.zoom = this.zoom0;
 
-    this.object.updateProjectionMatrix();
+    this.camera.updateProjectionMatrix();
 
-    this._eye.subVectors(this.object.position, this.target);
+    this._eye.subVectors(this.camera.position, this.target);
 
-    this.object.lookAt(this.target);
+    this.camera.lookAt(this.target);
 
     this.dispatchEvent(_changeEvent);
 
-    this.lastPosition.copy(this.object.position);
-    this.lastZoom = this.object.zoom;
+    this.lastPosition.copy(this.camera.position);
+    this.lastZoom = this.camera.zoom;
   };
 
-  handleResize = () => {
+  onResize = () => {
     const box = this.element.getBoundingClientRect();
     // adjustments come from similar code in the jquery offset() function
     const d = this.element.ownerDocument.documentElement;
@@ -664,6 +669,8 @@ class TrackballControls extends EventDispatcher {
   };
 
   dispose = () => {
+    this.element.style.touchAction = "auto";
+
     this.element.removeEventListener("contextmenu", this.onContextMenu);
 
     this.element.removeEventListener("pointerdown", this.onPointerDown);
