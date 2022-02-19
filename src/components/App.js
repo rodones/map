@@ -18,7 +18,7 @@ export class App extends LitElement {
     super();
   }
 
-  get nextControlType() {
+  get #nextControlType() {
     const values = ["pointer-lock", "map", "orbit", "trackball"];
     const currentIndex = values.findIndex((value) => value === this.control);
 
@@ -27,15 +27,15 @@ export class App extends LitElement {
     return values[(currentIndex + 1) % values.length];
   }
 
-  changeMode() {
-    this.control = this.nextControlType;
+  #changeMode() {
+    this.control = this.#nextControlType;
   }
 
-  showAbout() {
+  #showAbout() {
     alert("Rodones Map Viewer v0.2");
   }
 
-  renderButtons() {
+  #renderButtons() {
     return html`
       <!-- <rodo-button-container position="top" align="left">
         <rodo-button title="tl">tl1</rodo-button>
@@ -91,7 +91,7 @@ export class App extends LitElement {
         <rodo-button title="rc">rc3</rodo-button>
       </rodo-button-container>  -->
       <rodo-button-container position="right" align="right">
-        <rodo-button title="about" @click="${this.showAbout}">A</rodo-button>
+        <rodo-button title="about" @click="${this.#showAbout}">A</rodo-button>
         <!-- <rodo-button title="rr">rr2</rodo-button>
         <rodo-button title="rr">rr3</rodo-button> -->
       </rodo-button-container>
@@ -99,8 +99,8 @@ export class App extends LitElement {
       <rodo-button-container position="bottom" align="right">
         <rodo-button
           title="change mode (current: ${this.control})"
-          @click="${this.changeMode}"
-          >${this.nextControlType.replace("-", " ").toUpperCase()}
+          @click="${this.#changeMode}"
+          >${this.#nextControlType.replace("-", " ").toUpperCase()}
         </rodo-button>
         <!-- <rodo-button title="br">br2</rodo-button>
         <rodo-button title="br">br3</rodo-button> -->
@@ -108,7 +108,7 @@ export class App extends LitElement {
     `;
   }
 
-  renderCanvas() {
+  #renderCanvas() {
     return html`<rodo-canvas
       control="${this.control}"
       model="${this.model}"
@@ -116,7 +116,7 @@ export class App extends LitElement {
   }
 
   render() {
-    return [this.renderButtons(), this.renderCanvas()];
+    return [this.#renderButtons(), this.#renderCanvas()];
   }
 }
 
