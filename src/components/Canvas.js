@@ -60,18 +60,14 @@ export class Canvas extends LitElement {
     this.controller = new MapBaseController(this);
   }
 
-  attributeChangedCallback(name, oldValue, newValue) {
-    console.log(name, oldValue, newValue);
-
-    this[name] = newValue;
-
-    if (name === "control") {
-      this.extendController(newValue);
+  updated(changedProperties) {
+    if (changedProperties.has("control")) {
+      this.extendController(changedProperties.get("control"));
       try {
         this.controller.createControls();
         this.controller.animate();
       } catch (e) {
-        // console.error(e);
+        console.error(e);
       }
     }
   }
@@ -86,14 +82,6 @@ export class Canvas extends LitElement {
     } else if (control === "trackball") {
       this.controller.extendController(TrackballControlExtender);
     }
-  }
-
-  connectedCallback() {
-    super.connectedCallback();
-  }
-
-  disconnectedCallback() {
-    super.disconnectedCallback();
   }
 
   firstUpdated() {

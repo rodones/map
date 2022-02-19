@@ -175,24 +175,21 @@ export const PointerLockControlExtender = {
 
     this.controls = new PointerLockControls(this.camera, canvas);
 
-    // TODO: handle properly
-    setTimeout(() => {
-      const blocker = this.getBlocker();
-      const instructions = this.getInstructions();
-      instructions.addEventListener("click", () => {
-        this.controls.lock();
-      });
+    const blocker = this.getBlocker();
+    const instructions = this.getInstructions();
+    instructions.addEventListener("click", () => {
+      this.controls.lock();
+    });
 
-      this.controls.addEventListener("lock", () => {
-        instructions.style.display = "none";
-        blocker.style.display = "none";
-      });
+    this.controls.addEventListener("lock", () => {
+      instructions.style.display = "none";
+      blocker.style.display = "none";
+    });
 
-      this.controls.addEventListener("unlock", () => {
-        blocker.style.display = "block";
-        instructions.style.display = "";
-      });
-    }, 500);
+    this.controls.addEventListener("unlock", () => {
+      blocker.style.display = "block";
+      instructions.style.display = "";
+    });
 
     this.scene.add(this.controls.getObject());
 
