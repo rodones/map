@@ -109,7 +109,7 @@ export class Canvas extends LitElement {
     this.controller.animate();
   }
 
-  _renderBlocker() {
+  #renderBlocker() {
     return html`<div class="blocker" ${ref(this.blockerRef)}>
       <div class="instructions" ${ref(this.instructionsRef)}>
         <p style="font-size:36px">Click to play</p>
@@ -122,7 +122,7 @@ export class Canvas extends LitElement {
     </div>`;
   }
 
-  _renderCanvas() {
+  #renderCanvas() {
     return html`<canvas ${ref(this.canvasRef)}></canvas>`;
   }
 
@@ -130,8 +130,8 @@ export class Canvas extends LitElement {
     console.log("render", this.control);
 
     return html`
-      ${cache(this.control === "pointer-lock" ? this._renderBlocker() : "")}
-      ${cache(this._renderCanvas())}
+      ${cache(this.control === "pointer-lock" ? this.#renderBlocker() : "")}
+      ${cache(this.#renderCanvas())}
     `;
   }
 }
