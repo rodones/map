@@ -88,14 +88,14 @@ export class ButtonContainer extends LitElement {
   }
 
   connectedCallback() {
-    if (!this.constructor.#alignValues.includes(this.align))
+    if (!ButtonContainer.#alignValues.includes(this.align))
       throw Error(
         `The 'align' property accepts only ${this.constructor.#alignValues
           .map((v) => `'${v}'`)
           .join(", ")} but '${this.align}' was passed.`,
       );
 
-    if (!this.constructor.#positionValues.includes(this.position))
+    if (!ButtonContainer.#positionValues.includes(this.position))
       throw Error(
         `The 'position' property accepts only ${this.constructor.#positionValues
           .map((v) => `'${v}'`)
