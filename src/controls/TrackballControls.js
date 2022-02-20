@@ -18,7 +18,7 @@ const TrackballState = Object.freeze({
   TOUCH_ZOOM_PAN: 4,
 });
 
-class TrackballControls extends EventDispatcher {
+export default class TrackballControls extends EventDispatcher {
   constructor(camera, element) {
     super();
 
@@ -684,5 +684,3 @@ class TrackballControls extends EventDispatcher {
     window.removeEventListener("keyup", this.onKeyUp);
   };
 }
-
-export { TrackballControls };

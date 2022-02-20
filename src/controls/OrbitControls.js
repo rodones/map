@@ -23,7 +23,7 @@ const _endEvent = {
   type: "end",
 };
 
-export class OrbitControls extends EventDispatcher {
+export default class OrbitControls extends EventDispatcher {
   constructor(object, domElement) {
     super();
     if (domElement === undefined)

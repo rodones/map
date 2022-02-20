@@ -1,13 +1,7 @@
 import { LitElement, html, css } from "lit";
 import { cache } from "lit/directives/cache.js";
 import { ref, createRef } from "lit/directives/ref.js";
-import {
-  CanvasController,
-  MapControlProvider,
-  OrbitControlProvider,
-  PointerLockControlProvider,
-  TrackballControlProvider,
-} from "./Canvas.controller";
+import { CanvasController } from "./Canvas.controller";
 
 export class Canvas extends LitElement {
   static styles = css`
@@ -96,28 +90,43 @@ export class Canvas extends LitElement {
 
   updated(changedProperties) {
     if (changedProperties.has("control")) {
-      this.#changeController(this.control);
-      this.controller.createControls();
-      this.controller.animate();
+      this.#changeController(this.control).then(() => {
+        this.controller.createControls();
+        this.controller.animate();
+      });
     }
   }
 
-  #getProviderClass(control) {
-    return {
-      "pointer-lock": PointerLockControlProvider,
-      map: MapControlProvider,
-      orbit: OrbitControlProvider,
-      trackball: TrackballControlProvider,
-    }[control];
+  async #changeController(control) {
+    const ControlProvider = await this.#loadProviderClass(control);
+    this.controller.setControlProvider(new ControlProvider());
   }
 
-  #changeController(control) {
-    const ControlProvider = this.#getProviderClass(control);
-    if (ControlProvider) {
-      this.controller.setControlProvider(new ControlProvider());
-    } else {
-      throw new Error("The 'control' property is invalid.");
-    }
+  async #loadProviderClass(control) {
+    const module = await (() => {
+      switch (control) {
+        case "pointer-lock":
+          return import(
+            /* webpackChunkName: "PointerLockControl" */ "../controls/PointerLockControlsProvider"
+          );
+        case "map":
+          return import(
+            /* webpackChunkName: "MapControl" */ "../controls/MapControlsProvider"
+          );
+        case "orbit":
+          return import(
+            /* webpackChunkName: "OrbitControl" */ "../controls/OrbitControlsProvider"
+          );
+        case "trackball":
+          return import(
+            /* webpackChunkName: "TrackballControl" */ "../controls/TrackballControlsProvider"
+          );
+        default:
+          throw new Error("The 'control' property is invalid.");
+      }
+    })();
+
+    return module.default;
   }
 
   #renderBlocker() {

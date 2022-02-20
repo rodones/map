@@ -5,6 +5,9 @@ const WebpackBar = require("webpackbar");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const { EnvironmentPlugin, ProvidePlugin } = require("webpack");
+const CompressionPlugin = require("compression-webpack-plugin");
+const zlib = require("zlib");
+const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 
 // Load environment files from .env files
 dotenv.config();
@@ -68,6 +71,22 @@ module.exports = {
     new WebpackBar(),
     new CopyWebpackPlugin({
       patterns: [{ from: "public" }],
+    }),
+    new CompressionPlugin({
+      filename: "[path][base].br",
+      algorithm: "brotliCompress",
+      test: /\.(js|css|html|svg)$/,
+      compressionOptions: {
+        params: {
+          [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
+        },
+      },
+      threshold: 10240,
+      minRatio: 0.8,
+      deleteOriginalAssets: false,
+    }),
+    new BundleAnalyzerPlugin({
+      openAnalyzer: false,
     }),
   ],
 };

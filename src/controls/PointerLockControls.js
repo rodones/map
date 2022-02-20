@@ -5,7 +5,7 @@
 
 import { Euler, EventDispatcher, Vector3 } from "three";
 
-class PointerLockControls extends EventDispatcher {
+export default class PointerLockControls extends EventDispatcher {
   constructor(camera, element) {
     super();
 
@@ -135,5 +135,3 @@ class PointerLockControls extends EventDispatcher {
     this.dispatchEvent({ type: "unlock" });
   };
 }
-
-export { PointerLockControls };
