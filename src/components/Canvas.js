@@ -55,9 +55,43 @@ export class Canvas extends LitElement {
   blockerRef = createRef();
   instructionsRef = createRef();
 
+  static #controlValues = Object.freeze([
+    "pointer-lock",
+    "map",
+    "orbit",
+    "trackball",
+  ]);
+
+  #control;
+
   constructor() {
     super();
     this.controller = new MapBaseController(this);
+  }
+
+  set control(value) {
+    if (!Canvas.#controlValues.includes(value)) {
+      throw new Error(
+        `The 'control' property accepts only ${Canvas.#controlValues
+          .map((v) => `'${v}'`)
+          .join(", ")} but '${value}' was passed.`,
+      );
+    }
+
+    const oldValue = this.#control;
+    this.#control = value;
+    this.requestUpdate("control", oldValue);
+  }
+
+  get control() {
+    return this.#control;
+  }
+
+  firstUpdated() {
+    this.controller.createScene();
+    this.controller.createRenderer();
+    this.controller.createCamera();
+    this.controller.loadMap();
   }
 
   updated(changedProperties) {
@@ -66,19 +100,6 @@ export class Canvas extends LitElement {
       this.controller.createControls();
       this.controller.animate();
     }
-  }
-
-  firstUpdated() {
-    this.#changeController(this.control);
-
-    if (!this.model) throw new Error("The 'model' property cannot be empty!");
-
-    this.controller.createScene();
-    this.controller.createRenderer();
-    this.controller.createCamera();
-    this.controller.loadMap();
-    this.controller.createControls();
-    this.controller.animate();
   }
 
   #getProviderClass(control) {

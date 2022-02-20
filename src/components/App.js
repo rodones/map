@@ -21,9 +21,6 @@ export class App extends LitElement {
   get #nextControlType() {
     const values = ["pointer-lock", "map", "orbit", "trackball"];
     const currentIndex = values.findIndex((value) => value === this.control);
-
-    if (currentIndex === -1) throw new Error("Invalid state!");
-
     return values[(currentIndex + 1) % values.length];
   }
 
