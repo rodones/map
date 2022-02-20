@@ -1,3 +1,8 @@
+/**
+ * This code taken from threejs examples. It might be refactored or edit.
+ * Source: https://github.com/mrdoob/three.js/blob/master/examples/jsm/controls/OrbitControls.js
+ */
+
 import { MOUSE, TOUCH } from "three";
 import OrbitControls from "./OrbitControls";
 
