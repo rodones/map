@@ -25,17 +25,27 @@ export class MapBaseController {
   constructor(host) {
     this.host = host;
     this.reDraw = false;
+    this.controlProvider = new ControlProvider(this);
 
     host.addController(this);
   }
 
-  getCanvas() {
+  get canvas() {
     return this.host.canvasRef.value;
   }
 
-  extendController(extender) {
-    this.destroyControls();
-    Object.assign(this, extender);
+  get blocker() {
+    return this.host.blockerRef.value;
+  }
+
+  get instructions() {
+    return this.host.instructionsRef.value;
+  }
+
+  useController(controlProvider) {
+    this.controlProvider.destroy();
+    controlProvider.setController(this);
+    this.controlProvider = controlProvider;
   }
 
   createScene() {
@@ -56,23 +66,23 @@ export class MapBaseController {
   }
 
   createRenderer() {
-    const canvas = this.getCanvas();
-
     this.renderer = new WebGLRenderer({
       antialias: true,
-      canvas,
+      canvas: this.canvas,
     });
     this.renderer.setClearColor(this.scene.fog.color);
     this.renderer.setPixelRatio(window.devicePixelRatio);
-    this.renderer.setSize(canvas.offsetWidth, canvas.offsetHeight, false);
+    this.renderer.setSize(
+      this.canvas.offsetWidth,
+      this.canvas.offsetHeight,
+      false,
+    );
   }
 
   createCamera() {
-    const canvas = this.getCanvas();
-
     this.camera = new PerspectiveCamera(
       60,
-      canvas.offsetWidth / canvas.offsetHeight,
+      this.canvas.offsetWidth / this.canvas.offsetHeight,
       1,
       2000,
     );
@@ -118,15 +128,14 @@ export class MapBaseController {
     window.addEventListener(
       "resize",
       () => {
-        const canvas = this.getCanvas();
-        const rect = canvas.getBoundingClientRect();
+        const rect = this.canvas.getBoundingClientRect();
         const width = rect.width;
         const height = window.innerHeight;
 
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
         this.renderer.setSize(width, height, false);
-        this.controls.update();
+        this.controlProvider.update();
 
         this.reDraw = true;
       },
@@ -134,28 +143,26 @@ export class MapBaseController {
     );
   }
 
-  destroyControls() {
-    console.log("empty");
-  }
-
   createControls() {
-    console.log("empty");
+    this.controlProvider.createControls();
   }
 
   animate() {
-    console.log("empty");
+    this.controlProvider.animate();
   }
 }
 
-export const PointerLockControlExtender = {
-  getBlocker() {
-    return this.host.blockerRef.value;
-  },
-  getInstructions() {
-    return this.host.instructionsRef.value;
-  },
+export class ControlProvider {
+  setController(controller) {
+    this.controller = controller;
+  }
+  createControls() {}
+  animate() {}
+  destroy() {}
+}
+
+export class PointerLockControlProvider extends ControlProvider {
   createControls() {
-    const canvas = this.getCanvas();
     this.moveForward = false;
     this.moveBackward = false;
     this.moveLeft = false;
@@ -173,96 +180,16 @@ export const PointerLockControlExtender = {
     this.vertex = new Vector3();
     this.color = new Color();
 
-    this.controls = new PointerLockControls(this.camera, canvas);
+    this.controls = new PointerLockControls(
+      this.controller.camera,
+      this.controller.canvas,
+    );
 
-    const blocker = this.getBlocker();
-    const instructions = this.getInstructions();
-    instructions.addEventListener("click", () => {
-      this.controls.lock();
-    });
+    this.#initPointerLockInterface();
 
-    this.controls.addEventListener("lock", () => {
-      instructions.style.display = "none";
-      blocker.style.display = "none";
-    });
+    this.controller.scene.add(this.controls.getObject());
 
-    this.controls.addEventListener("unlock", () => {
-      blocker.style.display = "block";
-      instructions.style.display = "";
-    });
-
-    this.scene.add(this.controls.getObject());
-
-    this._onKeyDown = (event) => {
-      event.preventDefault();
-
-      switch (event.code) {
-        case "ArrowUp":
-        case "KeyW":
-          this.moveForward = true;
-          this.canWalk = true;
-          break;
-
-        case "ArrowLeft":
-        case "KeyA":
-          this.moveLeft = true;
-          this.canWalk = true;
-          break;
-
-        case "ArrowDown":
-        case "KeyS":
-          this.moveBackward = true;
-          this.canWalk = true;
-          break;
-
-        case "ArrowRight":
-        case "KeyD":
-          this.moveRight = true;
-          break;
-        case "ShiftLeft":
-          this.runOffset = 3.5;
-          break;
-        case "Space":
-          if (this.canJump === true) this.velocity.y += 12;
-          this.canJump = false;
-          break;
-      }
-    };
-    this._onKeyUp = (event) => {
-      event.preventDefault();
-
-      switch (event.code) {
-        case "ArrowUp":
-        case "KeyW":
-          this.moveForward = false;
-          this.canWalk = false;
-          break;
-
-        case "ArrowLeft":
-        case "KeyA":
-          this.moveLeft = false;
-          this.canWalk = false;
-          break;
-
-        case "ArrowDown":
-        case "KeyS":
-          this.moveBackward = false;
-          this.canWalk = false;
-          break;
-
-        case "ArrowRight":
-        case "KeyD":
-          this.moveRight = false;
-          this.canWalk = false;
-          break;
-        case "ShiftLeft":
-          this.runOffset = 1;
-          break;
-      }
-    };
-
-    document.addEventListener("keydown", this._onKeyDown);
-    document.addEventListener("keyup", this._onKeyUp);
+    this.#addKeyboardListeners();
 
     this.raycaster = new Raycaster(
       new Vector3(),
@@ -270,13 +197,8 @@ export const PointerLockControlExtender = {
       0,
       2,
     );
-  },
-  _walk(position, delta) {
-    position.x += delta * this.walkOrbit;
-    position.y += delta * this.walkOrbit;
-    this.walkOrbit += this.walkOffset;
-    if (10 < this.walkOrbit || this.walkOrbit < -10) this.walkOffset *= -1;
-  },
+  }
+
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
 
@@ -286,7 +208,7 @@ export const PointerLockControlExtender = {
       this.raycaster.ray.origin.copy(this.controls.getObject().position);
       this.raycaster.ray.origin.y -= 5;
       const intersections = this.raycaster.intersectObject(
-        this.scene.getObjectByName("MAP_START"),
+        this.controller.scene.getObjectByName("MAP_START"),
       );
 
       const onObject = intersections.length > 0;
@@ -327,42 +249,134 @@ export const PointerLockControlExtender = {
       this.prevTime = time;
     }
 
-    this.renderer.render(this.scene, this.camera);
-  },
-  destroyControls() {
-    console.log("PointerLockControlExtender destroyControls");
-    if (this.animationRequestId) cancelAnimationFrame(this.animationRequestId);
-    delete this.raycaster;
-    delete this.getBlocker;
-    delete this.getInstructions;
+    this.controller.renderer.render(
+      this.controller.scene,
+      this.controller.camera,
+    );
+  }
 
-    document.removeEventListener("keydown", this._onKeyDown);
-    document.removeEventListener("keyup", this._onKeyUp);
+  destroy() {
+    console.log("PointerLockControlExtender destroyControls");
+
+    if (this.animationRequestId) cancelAnimationFrame(this.animationRequestId);
+
+    this.#removeKeyboardListeners();
 
     if (this.controls) {
       this.scene?.remove(this.controls.getObject());
       this.controls.dispose();
     }
-    delete this.controls;
+  }
 
-    delete this.moveForward;
-    delete this.moveBackward;
-    delete this.moveLeft;
-    delete this.moveRight;
-    delete this.canJump;
-    delete this.prevTime;
-    delete this.velocity;
-    delete this.direction;
-    delete this.vertex;
-    delete this.color;
-  },
-};
+  #walk(position, delta) {
+    position.x += delta * this.walkOrbit;
+    position.y += delta * this.walkOrbit;
+    this.walkOrbit += this.walkOffset;
+    if (10 < this.walkOrbit || this.walkOrbit < -10) this.walkOffset *= -1;
+  }
 
-export const MapControlExtender = {
+  #initPointerLockInterface() {
+    this.controller.instructions.addEventListener("click", () => {
+      this.controls.lock();
+    });
+
+    this.controls.addEventListener("lock", () => {
+      this.controller.instructions.style.display = "none";
+      this.controller.blocker.style.display = "none";
+    });
+
+    this.controls.addEventListener("unlock", () => {
+      this.controller.blocker.style.display = "block";
+      this.controller.instructions.style.display = "";
+    });
+  }
+
+  #addKeyboardListeners() {
+    document.addEventListener("keydown", this.#onKeyDown);
+    document.addEventListener("keyup", this.#onKeyUp);
+  }
+
+  #removeKeyboardListeners() {
+    document.removeEventListener("keydown", this.#onKeyDown);
+    document.removeEventListener("keyup", this.#onKeyUp);
+  }
+
+  #onKeyDown = (event) => {
+    event.preventDefault();
+
+    switch (event.code) {
+      case "ArrowUp":
+      case "KeyW":
+        this.moveForward = true;
+        this.canWalk = true;
+        break;
+
+      case "ArrowLeft":
+      case "KeyA":
+        this.moveLeft = true;
+        this.canWalk = true;
+        break;
+
+      case "ArrowDown":
+      case "KeyS":
+        this.moveBackward = true;
+        this.canWalk = true;
+        break;
+
+      case "ArrowRight":
+      case "KeyD":
+        this.moveRight = true;
+        break;
+      case "ShiftLeft":
+        this.runOffset = 3.5;
+        break;
+      case "Space":
+        if (this.canJump === true) this.velocity.y += 12;
+        this.canJump = false;
+        break;
+    }
+  };
+
+  #onKeyUp = (event) => {
+    event.preventDefault();
+
+    switch (event.code) {
+      case "ArrowUp":
+      case "KeyW":
+        this.moveForward = false;
+        this.canWalk = false;
+        break;
+
+      case "ArrowLeft":
+      case "KeyA":
+        this.moveLeft = false;
+        this.canWalk = false;
+        break;
+
+      case "ArrowDown":
+      case "KeyS":
+        this.moveBackward = false;
+        this.canWalk = false;
+        break;
+
+      case "ArrowRight":
+      case "KeyD":
+        this.moveRight = false;
+        this.canWalk = false;
+        break;
+      case "ShiftLeft":
+        this.runOffset = 1;
+        break;
+    }
+  };
+}
+
+export class MapControlProvider extends ControlProvider {
   createControls() {
-    const canvas = this.getCanvas();
-
-    this.controls = new MapControls(this.camera, canvas);
+    this.controls = new MapControls(
+      this.controller.camera,
+      this.controller.canvas,
+    );
 
     this.controls.enableDamping = true; // an animation loop is required when either damping or auto-rotation are enabled
     this.controls.dampingFactor = 0.05;
@@ -375,60 +389,66 @@ export const MapControlExtender = {
     this.controls.addEventListener("change", () => {
       this.reDraw = true;
     });
-  },
+  }
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
 
     this.controls.update();
     if (this.reDraw) {
-      this.renderer.render(this.scene, this.camera);
+      this.controller.renderer.render(
+        this.controller.scene,
+        this.controller.camera,
+      );
       this.reDraw = false;
     }
-  },
-  destroyControls() {
+  }
+  destroy() {
     console.log("MapControlExtender destroyControls");
     if (this.animationRequestId) cancelAnimationFrame(this.animationRequestId);
 
     this.controls?.dispose();
-    delete this.controls;
-  },
-};
+  }
+}
 
-export const OrbitControlExtender = {
+export class OrbitControlProvider extends ControlProvider {
   createControls() {
-    const canvas = this.getCanvas();
-
-    this.controls = new OrbitControls(this.camera, canvas);
+    this.controls = new OrbitControls(
+      this.controller.camera,
+      this.controller.canvas,
+    );
     this.controls.maxPolarAngle = Math.PI / 2;
 
     this.controls.listenToKeyEvents(window);
     this.controls.addEventListener("change", () => {
       this.reDraw = true;
     });
-  },
+  }
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
 
     this.controls.update();
     if (this.reDraw) {
-      this.renderer.render(this.scene, this.camera);
+      this.controller.renderer.render(
+        this.controller.scene,
+        this.controller.camera,
+      );
       this.reDraw = false;
     }
-  },
-  destroyControls() {
+  }
+  destroy() {
     console.log("OrbitControlExtender destroyControls");
     if (this.animationRequestId) cancelAnimationFrame(this.animationRequestId);
 
     this.controls?.dispose();
-    delete this.controls;
-  },
-};
+  }
+}
 
-export const TrackballControlExtender = {
+export class TrackballControlProvider extends ControlProvider {
   createControls() {
-    const canvas = this.getCanvas();
-
-    this.controls = new TrackballControls(this.camera, canvas);
+    this.controls = new TrackballControls(
+      this.controller.camera,
+      this.controller.canvas,
+    );
 
     this.controls.rotateSpeed = 1.0;
     this.controls.zoomSpeed = 1.2;
@@ -439,21 +459,23 @@ export const TrackballControlExtender = {
     this.controls.addEventListener("change", () => {
       this.reDraw = true;
     });
-  },
+  }
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
 
     this.controls.update();
     if (this.reDraw) {
-      this.renderer.render(this.scene, this.camera);
+      this.controller.renderer.render(
+        this.controller.scene,
+        this.controller.camera,
+      );
       this.reDraw = false;
     }
-  },
-  destroyControls() {
+  }
+  destroy() {
     console.log("Trackball destroyControls");
     if (this.animationRequestId) cancelAnimationFrame(this.animationRequestId);
 
     this.controls?.dispose();
-    delete this.controls;
-  },
-};
+  }
+}

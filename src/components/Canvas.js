@@ -3,10 +3,10 @@ import { cache } from "lit/directives/cache.js";
 import { ref, createRef } from "lit/directives/ref.js";
 import {
   MapBaseController,
-  MapControlExtender,
-  OrbitControlExtender,
-  PointerLockControlExtender,
-  TrackballControlExtender,
+  MapControlProvider,
+  OrbitControlProvider,
+  PointerLockControlProvider,
+  TrackballControlProvider,
 } from "./MapBaseController";
 
 export class Canvas extends LitElement {
@@ -62,7 +62,7 @@ export class Canvas extends LitElement {
 
   updated(changedProperties) {
     if (changedProperties.has("control")) {
-      this.extendController(changedProperties.get("control"));
+      this.changeController(this.control);
       try {
         this.controller.createControls();
         this.controller.animate();
@@ -72,20 +72,21 @@ export class Canvas extends LitElement {
     }
   }
 
-  extendController(control) {
+  changeController(control) {
+    console.log("changeController", control);
     if (control === "pointer-lock") {
-      this.controller.extendController(PointerLockControlExtender);
+      this.controller.useController(new PointerLockControlProvider());
     } else if (control === "map") {
-      this.controller.extendController(MapControlExtender);
+      this.controller.useController(new MapControlProvider());
     } else if (control === "orbit") {
-      this.controller.extendController(OrbitControlExtender);
+      this.controller.useController(new OrbitControlProvider());
     } else if (control === "trackball") {
-      this.controller.extendController(TrackballControlExtender);
+      this.controller.useController(new TrackballControlProvider());
     }
   }
 
   firstUpdated() {
-    this.extendController(this.control);
+    this.changeController(this.control);
 
     if (!this.model) throw new Error("model cannot be empty!");
 
