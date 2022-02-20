@@ -1,6 +1,6 @@
 import { LitElement, html, css } from "lit";
 
-export class ButtonContainer extends LitElement {
+export class RectangularLayout extends LitElement {
   static properties = {
     position: { type: String },
     align: { type: String },
@@ -88,14 +88,14 @@ export class ButtonContainer extends LitElement {
   }
 
   connectedCallback() {
-    if (!ButtonContainer.#alignValues.includes(this.align))
+    if (!RectangularLayout.#alignValues.includes(this.align))
       throw Error(
         `The 'align' property accepts only ${this.constructor.#alignValues
           .map((v) => `'${v}'`)
           .join(", ")} but '${this.align}' was passed.`,
       );
 
-    if (!ButtonContainer.#positionValues.includes(this.position))
+    if (!RectangularLayout.#positionValues.includes(this.position))
       throw Error(
         `The 'position' property accepts only ${this.constructor.#positionValues
           .map((v) => `'${v}'`)
@@ -116,4 +116,4 @@ export class ButtonContainer extends LitElement {
   }
 }
 
-window.customElements.define("rodo-button-container", ButtonContainer);
+window.customElements.define("rodo-rectangular-layout", RectangularLayout);
