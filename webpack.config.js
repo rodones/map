@@ -20,7 +20,9 @@ const environment = R.pickBy(R.flip(R.startsWith(`RODONES_MAP_`)), process.env);
 module.exports = {
   mode: isDevelopment ? "development" : "production",
   devtool: isDevelopment ? "eval-source-map" : false,
-  entry: path.join(__dirname, "src", "index.js"),
+  entry: {
+    index: "./src/index.js",
+  },
   module: {
     rules: [
       {
@@ -45,7 +47,7 @@ module.exports = {
   },
   output: {
     path: path.resolve(__dirname, "dist"),
-    filename: "index.js",
+    filename: "[name].bundle.js",
   },
   stats: {
     modules: false,
@@ -59,7 +61,7 @@ module.exports = {
       publicPath: "/",
     },
   },
-  plugins: [
+  plugins: R.filter(R.identity, [
     new ProvidePlugin({
       process: "process/browser",
     }),
@@ -85,8 +87,9 @@ module.exports = {
       minRatio: 0.8,
       deleteOriginalAssets: false,
     }),
-    new BundleAnalyzerPlugin({
-      openAnalyzer: false,
-    }),
-  ],
+    isDevelopment &&
+      new BundleAnalyzerPlugin({
+        openAnalyzer: false,
+      }),
+  ]),
 };
