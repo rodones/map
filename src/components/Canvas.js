@@ -62,33 +62,16 @@ export class Canvas extends LitElement {
 
   updated(changedProperties) {
     if (changedProperties.has("control")) {
-      this.changeController(this.control);
-      try {
-        this.controller.createControls();
-        this.controller.animate();
-      } catch (e) {
-        console.error(e);
-      }
-    }
-  }
-
-  changeController(control) {
-    console.log("changeController", control);
-    if (control === "pointer-lock") {
-      this.controller.useController(new PointerLockControlProvider());
-    } else if (control === "map") {
-      this.controller.useController(new MapControlProvider());
-    } else if (control === "orbit") {
-      this.controller.useController(new OrbitControlProvider());
-    } else if (control === "trackball") {
-      this.controller.useController(new TrackballControlProvider());
+      this.#changeController(this.control);
+      this.controller.createControls();
+      this.controller.animate();
     }
   }
 
   firstUpdated() {
-    this.changeController(this.control);
+    this.#changeController(this.control);
 
-    if (!this.model) throw new Error("model cannot be empty!");
+    if (!this.model) throw new Error("The 'model' property cannot be empty!");
 
     this.controller.createScene();
     this.controller.createRenderer();
@@ -96,6 +79,24 @@ export class Canvas extends LitElement {
     this.controller.loadMap();
     this.controller.createControls();
     this.controller.animate();
+  }
+
+  #getProviderClass(control) {
+    return {
+      "pointer-lock": PointerLockControlProvider,
+      map: MapControlProvider,
+      orbit: OrbitControlProvider,
+      trackball: TrackballControlProvider,
+    }[control];
+  }
+
+  #changeController(control) {
+    const ControlProvider = this.#getProviderClass(control);
+    if (ControlProvider) {
+      this.controller.useController(new ControlProvider());
+    } else {
+      throw new Error("The 'control' property is invalid.");
+    }
   }
 
   #renderBlocker() {
@@ -116,8 +117,6 @@ export class Canvas extends LitElement {
   }
 
   render() {
-    console.log("render", this.control);
-
     return html`
       ${cache(this.control === "pointer-lock" ? this.#renderBlocker() : "")}
       ${cache(this.#renderCanvas())}
