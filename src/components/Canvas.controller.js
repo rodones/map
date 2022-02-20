@@ -21,28 +21,35 @@ import {
 import { NexusObject } from "../vendors/NexusObject";
 import { PLYLoader } from "../vendors/PLYLoader";
 
-export class MapBaseController {
+/**
+ * @typedef {import("./Canvas").Canvas} Canvas
+ */
+
+export class CanvasController {
+  /**
+   * @param {Canvas} host
+   */
   constructor(host) {
+    /**
+     * @type {Canvas}
+     */
     this.host = host;
+    /**
+     * @type {boolean}
+     */
     this.reDraw = false;
+    /**
+     * @type {ControlProvider}
+     */
     this.controlProvider = new ControlProvider(this);
 
     host.addController(this);
   }
 
-  get canvas() {
-    return this.host.canvasRef.value;
-  }
-
-  get blocker() {
-    return this.host.blockerRef.value;
-  }
-
-  get instructions() {
-    return this.host.instructionsRef.value;
-  }
-
-  useController(controlProvider) {
+  /**
+   * @param {ControlProvider} controlProvider
+   */
+  setControlProvider(controlProvider) {
     this.controlProvider.destroy();
     controlProvider.setController(this);
     this.controlProvider = controlProvider;
@@ -150,14 +157,36 @@ export class MapBaseController {
   animate() {
     this.controlProvider.animate();
   }
+
+  get canvas() {
+    return this.host.canvasRef.value;
+  }
+
+  get blocker() {
+    return this.host.blockerRef.value;
+  }
+
+  get instructions() {
+    return this.host.instructionsRef.value;
+  }
 }
 
 export class ControlProvider {
+  /**
+   * @param {CanvasController} controller
+   */
   setController(controller) {
     this.controller = controller;
   }
-  createControls() {}
-  animate() {}
+
+  createControls() {
+    throw new Error("Not implemented.");
+  }
+
+  animate() {
+    throw new Error("Not implemented.");
+  }
+
   destroy() {}
 }
 
@@ -310,19 +339,16 @@ export class PointerLockControlProvider extends ControlProvider {
         this.moveForward = true;
         this.canWalk = true;
         break;
-
       case "ArrowLeft":
       case "KeyA":
         this.moveLeft = true;
         this.canWalk = true;
         break;
-
       case "ArrowDown":
       case "KeyS":
         this.moveBackward = true;
         this.canWalk = true;
         break;
-
       case "ArrowRight":
       case "KeyD":
         this.moveRight = true;
@@ -346,19 +372,16 @@ export class PointerLockControlProvider extends ControlProvider {
         this.moveForward = false;
         this.canWalk = false;
         break;
-
       case "ArrowLeft":
       case "KeyA":
         this.moveLeft = false;
         this.canWalk = false;
         break;
-
       case "ArrowDown":
       case "KeyS":
         this.moveBackward = false;
         this.canWalk = false;
         break;
-
       case "ArrowRight":
       case "KeyD":
         this.moveRight = false;
@@ -390,6 +413,7 @@ export class MapControlProvider extends ControlProvider {
       this.reDraw = true;
     });
   }
+
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
 
@@ -402,6 +426,7 @@ export class MapControlProvider extends ControlProvider {
       this.reDraw = false;
     }
   }
+
   destroy() {
     console.log("MapControlExtender destroyControls");
     if (this.animationRequestId) cancelAnimationFrame(this.animationRequestId);
@@ -423,6 +448,7 @@ export class OrbitControlProvider extends ControlProvider {
       this.reDraw = true;
     });
   }
+
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
 
@@ -435,6 +461,7 @@ export class OrbitControlProvider extends ControlProvider {
       this.reDraw = false;
     }
   }
+
   destroy() {
     console.log("OrbitControlExtender destroyControls");
     if (this.animationRequestId) cancelAnimationFrame(this.animationRequestId);
@@ -460,6 +487,7 @@ export class TrackballControlProvider extends ControlProvider {
       this.reDraw = true;
     });
   }
+
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
 
@@ -472,6 +500,7 @@ export class TrackballControlProvider extends ControlProvider {
       this.reDraw = false;
     }
   }
+
   destroy() {
     console.log("Trackball destroyControls");
     if (this.animationRequestId) cancelAnimationFrame(this.animationRequestId);

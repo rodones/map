@@ -2,12 +2,12 @@ import { LitElement, html, css } from "lit";
 import { cache } from "lit/directives/cache.js";
 import { ref, createRef } from "lit/directives/ref.js";
 import {
-  MapBaseController,
+  CanvasController,
   MapControlProvider,
   OrbitControlProvider,
   PointerLockControlProvider,
   TrackballControlProvider,
-} from "./MapBaseController";
+} from "./Canvas.controller";
 
 export class Canvas extends LitElement {
   static styles = css`
@@ -66,7 +66,7 @@ export class Canvas extends LitElement {
 
   constructor() {
     super();
-    this.controller = new MapBaseController(this);
+    this.controller = new CanvasController(this);
   }
 
   set control(value) {
@@ -114,7 +114,7 @@ export class Canvas extends LitElement {
   #changeController(control) {
     const ControlProvider = this.#getProviderClass(control);
     if (ControlProvider) {
-      this.controller.useController(new ControlProvider());
+      this.controller.setControlProvider(new ControlProvider());
     } else {
       throw new Error("The 'control' property is invalid.");
     }
