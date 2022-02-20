@@ -101,7 +101,7 @@ export class Canvas extends LitElement {
   #renderBlocker() {
     return html`<div class="blocker" ${ref(this.blockerRef)}>
       <div class="instructions" ${ref(this.instructionsRef)}>
-        <p style="font-size:36px">Click to play</p>
+        <p style="font-size:36px">Click to start</p>
         <p>
           Move: WASD<br />
           Jump: SPACE<br />
