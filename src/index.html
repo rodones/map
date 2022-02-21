@@ -11,17 +11,19 @@
 
 <body>
   <div id="rodo-loading">
-    <div id="rodo-loading-content" class="hidden">
+    <div id="rodo-loading-js" class="rodo-loading-content hidden">
       <div class="lds-ring">
         <!-- source: https://loading.io/css/ -->
         <div></div><div></div><div></div><div></div>
       </div>
     </div>
     <script>
-      document.getElementById("rodo-loading-content").classList.remove("hidden");
+      document.getElementById("rodo-loading-js").classList.remove("hidden");
     </script>
     <noscript>
-      This website requires JavaScript to run.
+      <div class="rodo-loading-content">
+        This website requires JavaScript to run.
+      </div>
     </noscript>
   </div>
   <div id="rodo-root"></div>
