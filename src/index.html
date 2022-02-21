@@ -5,14 +5,26 @@
   <title>Rodones Map</title>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+  <link rel="stylesheet" href="index.css">
   <script src="vendors/nexus.js"></script>
 </head>
 
 <body>
+  <div id="rodo-loading">
+    <div id="rodo-loading-content" class="hidden">
+      <div class="lds-ring">
+        <!-- source: https://loading.io/css/ -->
+        <div></div><div></div><div></div><div></div>
+      </div>
+    </div>
+    <script>
+      document.getElementById("rodo-loading-content").classList.remove("hidden");
+    </script>
+    <noscript>
+      This website requires JavaScript to run.
+    </noscript>
+  </div>
   <div id="rodo-root"></div>
-  <noscript>
-    This website requires JavaScript to run.
-  </noscript>
 </body>
 
 </html>

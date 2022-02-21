@@ -1,8 +1,7 @@
-import "./index.css";
-import "./components";
 import { html, render } from "lit-html";
+import "./components";
 
-const createApp = () => {
+window.onload = () => {
   const modelBases = {
     digitalocean: "https://rodones.fra1.digitaloceanspaces.com/map/meshes/",
     static: "/static/",
@@ -17,9 +16,10 @@ const createApp = () => {
   const control = searchParams.get("control") ?? "pointer-lock";
   const model = modelBase + modelName;
 
-  return html`<rodo-app control="${control}" model="${model}"></rodo-app>`;
-};
+  render(
+    html`<rodo-app control="${control}" model="${model}"></rodo-app>`,
+    document.getElementById("rodo-root"),
+  );
 
-window.onload = () => {
-  render(createApp(), document.getElementById("rodo-root"));
+  document.getElementById("rodo-loading").classList.add("hidden");
 };
