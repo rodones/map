@@ -226,9 +226,9 @@ export class NexusObject extends Mesh {
     var min = new Vector3(+Infinity, +Infinity, +Infinity);
     var max = new Vector3(-Infinity, -Infinity, -Infinity);
 
-    var array = new Float32Array(nexus.sink - 2);
+    // var array = new Float32Array(nexus.sink - 2);
     //check last level of spheres
-    var count = 0;
+    // var count = 0;
     for (var i = 0; i < nexus.sink; i++) {
       var patch = nexus.nfirstpatch[i];
       if (nexus.patches[patch * 3] != nexus.sink) continue;
@@ -290,6 +290,7 @@ export class NexusObject extends Mesh {
       var d = hit.distanceTo(raycaster.ray.origin);
       if(d < raycaster.near || d > raycaster.far ) continue;
       if(distance == -2.0 || d < distance) {
+        console.log(hit.subVectors(hit, raycaster.ray.origin).normalize())
         distance = d;
         intersect = hit;
       }
@@ -298,6 +299,7 @@ export class NexusObject extends Mesh {
   
     if(distance == -2.0) return;
     intersects.push({ distance: distance, point: intersect, object: this} );
+    // console.log(raycaster);
     return;
   }
 }
