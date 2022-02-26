@@ -290,7 +290,6 @@ export class NexusObject extends Mesh {
       var d = hit.distanceTo(raycaster.ray.origin);
       if(d < raycaster.near || d > raycaster.far ) continue;
       if(distance == -2.0 || d < distance) {
-        console.log(hit.subVectors(hit, raycaster.ray.origin).normalize())
         distance = d;
         intersect = hit;
       }
@@ -299,7 +298,6 @@ export class NexusObject extends Mesh {
   
     if(distance == -2.0) return;
     intersects.push({ distance: distance, point: intersect, object: this} );
-    // console.log(raycaster);
     return;
   }
 }
