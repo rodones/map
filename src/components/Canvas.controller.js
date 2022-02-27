@@ -10,8 +10,6 @@ import {
   AxesHelper,
   MeshBasicMaterial,
 } from "three";
-import { NexusObject } from "../vendors/NexusObject";
-import { PLYLoader } from "../vendors/PLYLoader";
 
 /**
  * @typedef {import("./Canvas").Canvas} Canvas
@@ -99,31 +97,45 @@ export class CanvasController {
     });
 
     if (this.host.model.endsWith(".nxs") || this.host.model.endsWith(".nxz")) {
-      this.scene.add(
-        new NexusObject(
-          this.host.model,
-          (obj) => {
-            obj.name = "MAP_START";
-            obj.position.set(0, 0, 0);
-            this.reDraw = true;
-          },
-          () => {
-            this.reDraw = true;
-          },
-          this.renderer,
-          material,
-        ),
-      );
+      this.#loadNexusFile(material);
     } else if (this.host.model.endsWith(".ply")) {
-      const loader = new PLYLoader();
-      loader.load(this.host.model, (geometry) => {
-        const obj = new Mesh(geometry, material);
-        obj.name = "MAP_START";
-        obj.position.set(0, 0, 0);
-        this.scene.add(obj);
-        this.reDraw = true;
-      });
+      this.#loadPLYFile(material);
     }
+  }
+
+  async #loadPLYFile(material) {
+    const { PLYLoader } = await import(
+      /* webpackChunkName: "PLYLoader" */ "../vendors/PLYLoader"
+    );
+    new PLYLoader().load(this.host.model, (geometry) => {
+      const obj = new Mesh(geometry, material);
+      obj.name = "MAP_START";
+      obj.position.set(0, 0, 0);
+      this.scene.add(obj);
+      this.reDraw = true;
+    });
+  }
+
+  async #loadNexusFile(material) {
+    await import(/* webpackIgnore: true */ "/vendors/nexus.js");
+    const { NexusObject } = await import(
+      /* webpackChunkName: "NexusObject" */ "../vendors/NexusObject"
+    );
+    this.scene.add(
+      new NexusObject(
+        this.host.model,
+        (obj) => {
+          obj.name = "MAP_START";
+          obj.position.set(0, 0, 0);
+          this.reDraw = true;
+        },
+        () => {
+          this.reDraw = true;
+        },
+        this.renderer,
+        material,
+      ),
+    );
   }
 
   #onResize = () => {
