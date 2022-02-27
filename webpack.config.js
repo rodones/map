@@ -7,7 +7,6 @@ const CopyWebpackPlugin = require("copy-webpack-plugin");
 const { EnvironmentPlugin, ProvidePlugin } = require("webpack");
 const CompressionPlugin = require("compression-webpack-plugin");
 const zlib = require("zlib");
-const { BundleAnalyzerPlugin } = require("webpack-bundle-analyzer");
 
 // Load environment files from .env files
 dotenv.config();
@@ -87,9 +86,5 @@ module.exports = {
       minRatio: 0.8,
       deleteOriginalAssets: false,
     }),
-    isDevelopment &&
-      new BundleAnalyzerPlugin({
-        openAnalyzer: false,
-      }),
   ]),
 };
