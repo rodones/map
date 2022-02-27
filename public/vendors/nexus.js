@@ -35,7 +35,7 @@ var i, j, k;
 var meco = null;
 function loadMeco() {
 
-	meco = new Worker("/vendors/meco.js");
+	meco = new Worker("vendors/meco.js");
 
 	meco.onerror = function(e) { console.log(e); }
 	meco.requests = {};
@@ -74,7 +74,7 @@ function loadCorto() {
 //	let corto_url = path.replace('nexus.js', 'corto.em.js');
 
 //	corto = new Worker(getWorkerURL(corto_url));
-	corto = new Worker("/vendors/corto.js");
+	corto = new Worker("vendors/corto.js");
 	corto.requests = {};
 	corto.count = 0;
 	corto.postRequest = function(node) {

@@ -136,7 +136,7 @@ export class CanvasController {
   }
 
   async #loadNexusFile(material) {
-    await import(/* webpackIgnore: true */ "/vendors/nexus.js");
+    await import(/* webpackIgnore: true */ "vendors/nexus.js");
     const { NexusObject } = await import(
       /* webpackChunkName: "NexusObject" */ "../vendors/NexusObject"
     );
