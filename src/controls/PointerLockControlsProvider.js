@@ -50,22 +50,22 @@ export default class PointerLockControlProvider extends ControlProvider {
     const time = performance.now();
 
     if (this.controls.isLocked) {
-      this.raycaster.ray.origin.copy(this.controls.getObject().position);
-      this.raycaster.ray.origin.y -= 5;
-      const intersections = this.raycaster.intersectObject(
-        this.controller.scene.getObjectByName("MAP_START"),
-      );
-
       const delta = (time - this.prevTime) / 1000;
 
       this.velocity.x -= this.velocity.x * delta;
       this.velocity.z -= this.velocity.z * delta;
+
+      // TODO cam direction
+      // let camDirection = new Vector3(0, 0, 0);
+      // this.controller.camera.getWorldDirection(camDirection);
 
       // soar in the sky to the map
 
       this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
       this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
       this.direction.normalize(); // this ensures consistent movements in all directions
+
+      const intersections = this.#raycast();
 
       if (this.moveForward || this.moveBackward)
         this.velocity.z = this.direction.z * 900.0 * delta * this.runOffset;
@@ -125,6 +125,14 @@ export default class PointerLockControlProvider extends ControlProvider {
       this.scene?.remove(this.controls.getObject());
       this.controls.dispose();
     }
+  }
+
+  #raycast() {
+    this.raycaster.ray.origin.copy(this.controls.getObject().position);
+    this.raycaster.ray.origin.y -= 5;
+    return this.raycaster.intersectObject(
+      this.controller.scene.getObjectByName("MAP_START"),
+    );
   }
 
   #walk(position, delta) {
