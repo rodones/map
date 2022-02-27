@@ -40,55 +40,65 @@ export default class PointerLockControlProvider extends ControlProvider {
     );
   }
 
+  onObject(intersects) {
+    return intersects.some(inter => inter.face.normal.y > 0.01)
+  }
+
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
-
-    if (this.controls.isLocked) {
-      const time = performance.now();
-
-      this.raycaster.ray.origin.copy(this.controls.getObject().position);
-      this.raycaster.ray.origin.y -= 5;
-      const intersections = this.raycaster.intersectObject(
-        this.controller.scene.getObjectByName("MAP_START"),
+    if (!this.controls.isLocked) {
+      this.controller.renderer.render(
+        this.controller.scene,
+        this.controller.camera,
       );
-
-      const onObject = intersections.length > 0;
-
-      const delta = (time - this.prevTime) / 1000;
-
-      this.velocity.x -= this.velocity.x * delta;
-      this.velocity.z -= this.velocity.z * delta;
-
-      // soar in the sky to the map
-
-      this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
-      this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
-      this.direction.normalize(); // this ensures consistent movements in all directions
-
-      if (this.moveForward || this.moveBackward)
-        this.velocity.z = this.direction.z * 900.0 * delta * this.runOffset;
-      if (this.moveLeft || this.moveRight)
-        this.velocity.x = this.direction.x * 900.0 * delta * this.runOffset;
-
-      if (onObject === true) {
-        this.velocity.y = intersections[0].distance;
-        if (this.velocity.x < 1 && this.velocity.z < 1) this.velocity.y = 0;
-        this.canJump = true;
-      } else {
-        this.velocity.y -= this.gravityOffset * delta;
-      }
-
-      this.controls.moveRight(this.velocity.x * delta);
-      this.controls.moveForward(this.velocity.z * delta);
-
-      this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
-
-      // if (this.canWalk) {
-      //   this._walk(this.controls.getObject().position, delta);
-      // }
-
-      this.prevTime = time;
+      return
     }
+    const time = performance.now();
+
+    this.raycaster.ray.origin.copy(this.controls.getObject().position);
+    this.raycaster.ray.origin.y -= 5;
+    const intersections = this.raycaster.intersectObject(
+      this.controller.scene.getObjectByName("MAP_START"),
+    );
+
+    if (intersections.length) {
+      const k = intersections[0]
+      console.log(k.face.normal);
+    }
+    const delta = (time - this.prevTime) / 1000;
+
+    this.velocity.x -= this.velocity.x * delta;
+    this.velocity.z -= this.velocity.z * delta;
+
+    // soar in the sky to the map
+
+    this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
+    this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
+    this.direction.normalize(); // this ensures consistent movements in all directions
+
+    if (this.moveForward || this.moveBackward)
+      this.velocity.z = this.direction.z * 900.0 * delta * this.runOffset;
+    if (this.moveLeft || this.moveRight)
+      this.velocity.x = this.direction.x * 900.0 * delta * this.runOffset;
+
+    if (this.onObject(intersections) === true) {
+      this.velocity.y = intersections[0].distance;
+      if (this.velocity.x < 1 && this.velocity.z < 1) this.velocity.y = 0;
+      this.canJump = true;
+    } else {
+      this.velocity.y -= this.gravityOffset * delta;
+    }
+
+    this.controls.moveRight(this.velocity.x * delta);
+    this.controls.moveForward(this.velocity.z * delta);
+
+    this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
+
+    // if (this.canWalk) {
+    //   this._walk(this.controls.getObject().position, delta);
+    // }
+
+    this.prevTime = time;
 
     this.controller.renderer.render(
       this.controller.scene,
