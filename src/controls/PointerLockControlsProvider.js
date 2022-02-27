@@ -41,7 +41,7 @@ export default class PointerLockControlProvider extends ControlProvider {
   }
 
   onObject(intersects) {
-    return intersects.some(inter => inter.face.normal.y > 0.01)
+    return intersects.some((inter) => inter.face.normal.y > 0.01);
   }
 
   animate() {
@@ -51,7 +51,7 @@ export default class PointerLockControlProvider extends ControlProvider {
         this.controller.scene,
         this.controller.camera,
       );
-      return
+      return;
     }
     const time = performance.now();
 
@@ -61,10 +61,6 @@ export default class PointerLockControlProvider extends ControlProvider {
       this.controller.scene.getObjectByName("MAP_START"),
     );
 
-    if (intersections.length) {
-      const k = intersections[0]
-      console.log(k.face.normal);
-    }
     const delta = (time - this.prevTime) / 1000;
 
     this.velocity.x -= this.velocity.x * delta;
@@ -89,13 +85,29 @@ export default class PointerLockControlProvider extends ControlProvider {
       this.velocity.y -= this.gravityOffset * delta;
     }
 
+    if (intersections.length) {
+      intersections.forEach((inter) => {
+        console.log(inter);
+
+        let norm = inter.face.normal;
+        console.log(norm);
+        if (
+          norm.y <= 0.01 &&
+          (norm.x >= 0.9 || norm.x <= -0.9 || norm.z >= 0.9 || norm.z <= -0.9)
+        ) {
+          this.velocity.x = -norm.x;
+          this.velocity.z = -norm.z;
+        }
+      });
+    }
+
     this.controls.moveRight(this.velocity.x * delta);
     this.controls.moveForward(this.velocity.z * delta);
 
     this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
 
     // if (this.canWalk) {
-    //   this._walk(this.controls.getObject().position, delta);
+    //   this.#walk(this.controls.getObject().position, delta);
     // }
 
     this.prevTime = time;
