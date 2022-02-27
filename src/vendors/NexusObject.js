@@ -23,6 +23,7 @@
  * THE SOFTWARE.
  */
 
+import { Triangle } from "three";
 import {
   Box3,
   BufferAttribute,
@@ -274,6 +275,7 @@ export class NexusObject extends Mesh {
     let A = new Vector3(0, 0, 0);
     let B = new Vector3(0, 0, 0);
     let C = new Vector3(0, 0, 0);
+    let norm = new Vector3(0,0,0);
     for(var j = 0; j < nexus.basei.length; j += 3) {
       var a = face[j];
       var b = face[j+1];
@@ -292,12 +294,13 @@ export class NexusObject extends Mesh {
       if(distance == -2.0 || d < distance) {
         distance = d;
         intersect = hit;
+        new Triangle(A,B,C).getNormal(norm);
       }
     }
     
   
     if(distance == -2.0) return;
-    intersects.push({ distance: distance, point: intersect, object: this} );
+    intersects.push({ distance: distance, point: intersect, face: {normal:norm}, object: this} );
     return;
   }
 }
