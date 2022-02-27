@@ -24,33 +24,18 @@
  */
 
 
-Nexus = function() {
+window.Nexus = window.Nexus || function() {
 
 /* WORKER INITIALIZED ONCE */
 
 var meco;
 var corto;
-
-var scripts = document.getElementsByTagName('script');
 var i, j, k;
-var path;
-for(i = 0; i < scripts.length; i++) {
-	var attrs = scripts[i].attributes;
-	for(j = 0; j < attrs.length; j++) {
-		var a = attrs[j];
-		if(a.name != 'src') continue;
-		if(!a.value) continue;
-		if(a.value.search('nexus.js') >= 0) {
-			path = a.value;
-			break;
-		}
-	}
-}
 
 var meco = null;
 function loadMeco() {
 
-	meco = new Worker(path.replace('nexus.js', 'meco.js'));
+	meco = new Worker("vendors/meco.js");
 
 	meco.onerror = function(e) { console.log(e); }
 	meco.requests = {};
@@ -89,7 +74,7 @@ function loadCorto() {
 //	let corto_url = path.replace('nexus.js', 'corto.em.js');
 
 //	corto = new Worker(getWorkerURL(corto_url));
-	corto = new Worker(path.replace('nexus.js', 'corto.em.js'));
+	corto = new Worker("vendors/corto.js");
 	corto.requests = {};
 	corto.count = 0;
 	corto.postRequest = function(node) {
@@ -200,7 +185,7 @@ function matInv(m, t) {
 
 /* PRIORITY QUEUE */
 
-PriorityQueue = function(max_length) {
+var PriorityQueue = function(max_length) {
 	this.error = new Float32Array(max_length);
 	this.data = new Int32Array(max_length);
 	this.size = 0;
@@ -303,7 +288,7 @@ var drawBudget    = 5*(1<<20);
 
 /* MESH DEFINITION */
 
-Mesh = function() {
+var Mesh = function() {
 	var t = this;
 	t.onLoad = null;
 	t.reqAttempt = 0;
@@ -532,7 +517,7 @@ Mesh.prototype = {
 	}
 };
 
-Instance = function(gl) {
+var Instance = function(gl) {
 	this.gl = gl;
 	this.onLoad = function() {};
 	this.onUpdate = null;

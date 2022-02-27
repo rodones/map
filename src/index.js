@@ -16,10 +16,16 @@ window.onload = () => {
   const control = searchParams.get("control") ?? "pointer-lock";
   const model = modelBase + modelName;
 
+  const onMapLoaded = () => {
+    document.getElementById("rodo-loading").classList.add("hidden");
+  };
+
   render(
-    html`<rodo-app control="${control}" model="${model}"></rodo-app>`,
+    html`<rodo-app
+      @mapLoaded="${onMapLoaded}"
+      control="${control}"
+      model="${model}"
+    ></rodo-app>`,
     document.getElementById("rodo-root"),
   );
-
-  document.getElementById("rodo-loading").classList.add("hidden");
 };
