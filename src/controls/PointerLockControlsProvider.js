@@ -43,9 +43,8 @@ export default class PointerLockControlProvider extends ControlProvider {
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
 
+    const time = performance.now();
     if (this.controls.isLocked) {
-      const time = performance.now();
-
       this.raycaster.ray.origin.copy(this.controls.getObject().position);
       this.raycaster.ray.origin.y -= 5;
       const intersections = this.raycaster.intersectObject(
@@ -86,9 +85,8 @@ export default class PointerLockControlProvider extends ControlProvider {
       // if (this.canWalk) {
       //   this._walk(this.controls.getObject().position, delta);
       // }
-
-      this.prevTime = time;
     }
+    this.prevTime = time;
 
     this.controller.renderer.render(
       this.controller.scene,
