@@ -36,7 +36,7 @@ export default class PointerLockControlProvider extends ControlProvider {
       new Vector3(),
       new Vector3(-1, -1, -1),
       0,
-      2,
+      1,
     );
   }
 
@@ -71,13 +71,8 @@ export default class PointerLockControlProvider extends ControlProvider {
         this.velocity.z = this.direction.z * 900.0 * delta * this.runOffset;
       if (this.moveLeft || this.moveRight)
         this.velocity.x = this.direction.x * 900.0 * delta * this.runOffset;
+
       if (this.onObject(intersections) === true) {
-        intersections.forEach((inter) => {
-          if (inter.face.normal.y > 0.01 && inter.face.midpoint) {
-            let obj = this.controls.getObject();
-            obj.y = inter.face.midpoint.y;
-          }
-        });
         this.velocity.y = intersections[0].distance;
         if (this.velocity.x < 1 && this.velocity.z < 1) this.velocity.y = 0;
         this.canJump = true;
@@ -86,26 +81,28 @@ export default class PointerLockControlProvider extends ControlProvider {
       }
 
       if (intersections.length) {
-        // intersections.forEach((inter) => {
-        //   let tempNorm = new Vector3(0, 0, 0).copy(inter.face.normal);
-        //   let tempCamDirection = new Vector3(0, 0, 0).copy(this.direction);
-        //   let tempVelocity = tempNorm.add(tempCamDirection);
-        //   if (tempVelocity.x > 0.9 || tempVelocity.x < -0.9)
-        //     this.velocity.x = 0;
-        //   if (tempVelocity.z > 0.9 || tempVelocity.z < -0.9)
-        //     this.velocity.z = 0;
-        //   this.velocity.x *= tempVelocity.x;
-        //   this.velocity.y *= tempVelocity.y;
-        //   this.velocity.z *= tempVelocity.z;
-        // });
-      } else {
-        this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
+        intersections.forEach((inter) => {
+          let tempNorm = new Vector3(0, 0, 0).copy(inter.face.normal);
+
+          let tempCamDirection = new Vector3(0, 0, 0).copy(this.direction);
+
+          let tempVelocity = tempNorm.add(tempCamDirection);
+
+          if (tempVelocity.x > 0.9 || tempVelocity.x < -0.9)
+            this.velocity.x = 0;
+          if (tempVelocity.z > 0.9 || tempVelocity.z < -0.9)
+            this.velocity.z = 0;
+
+          this.velocity.x *= tempVelocity.x;
+          this.velocity.y *= tempVelocity.y;
+          this.velocity.z *= tempVelocity.z;
+        });
       }
 
       this.controls.moveRight(this.velocity.x * delta);
       this.controls.moveForward(this.velocity.z * delta);
 
-      //this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
+      this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
 
       // if (this.canWalk) {
       //   this._walk(this.controls.getObject().position, delta);
