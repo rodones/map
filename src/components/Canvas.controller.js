@@ -90,16 +90,26 @@ export class CanvasController {
     this.#addResizeHandler();
   }
 
-  loadMap() {
+  async loadMap() {
     const material = new MeshBasicMaterial({
       color: true,
       vertexColors: true,
     });
 
-    if (this.host.model.endsWith(".nxs") || this.host.model.endsWith(".nxz")) {
-      this.#loadNexusFile(material);
-    } else if (this.host.model.endsWith(".ply")) {
-      this.#loadPLYFile(material);
+    const format = this.host.model
+      .slice(((this.host.model.lastIndexOf(".") - 1) >>> 0) + 2)
+      .toLowerCase();
+
+    switch (format) {
+      case "nxs":
+      case "nxz":
+        await this.#loadNexusFile(material);
+        break;
+      case "ply":
+        await this.#loadPLYFile(material);
+        break;
+      default:
+        throw new Error("Unknown file format.");
     }
   }
 
@@ -107,12 +117,21 @@ export class CanvasController {
     const { PLYLoader } = await import(
       /* webpackChunkName: "PLYLoader" */ "../vendors/PLYLoader"
     );
-    new PLYLoader().load(this.host.model, (geometry) => {
-      const obj = new Mesh(geometry, material);
-      obj.name = "MAP_START";
-      obj.position.set(0, 0, 0);
-      this.scene.add(obj);
-      this.reDraw = true;
+
+    return new Promise((resolve, reject) => {
+      new PLYLoader().load(
+        this.host.model,
+        (geometry) => {
+          const obj = new Mesh(geometry, material);
+          obj.name = "MAP_START";
+          obj.position.set(0, 0, 0);
+          this.scene.add(obj);
+          this.reDraw = true;
+          resolve();
+        },
+        () => {},
+        reject,
+      );
     });
   }
 
@@ -121,21 +140,29 @@ export class CanvasController {
     const { NexusObject } = await import(
       /* webpackChunkName: "NexusObject" */ "../vendors/NexusObject"
     );
-    this.scene.add(
-      new NexusObject(
-        this.host.model,
-        (obj) => {
-          obj.name = "MAP_START";
-          obj.position.set(0, 0, 0);
-          this.reDraw = true;
-        },
-        () => {
-          this.reDraw = true;
-        },
-        this.renderer,
-        material,
-      ),
-    );
+
+    return new Promise((resolve, reject) => {
+      try {
+        this.scene.add(
+          new NexusObject(
+            this.host.model,
+            (obj) => {
+              obj.name = "MAP_START";
+              obj.position.set(0, 0, 0);
+              this.reDraw = true;
+              resolve();
+            },
+            () => {
+              this.reDraw = true;
+            },
+            this.renderer,
+            material,
+          ),
+        );
+      } catch (e) {
+        reject(e);
+      }
+    });
   }
 
   #onResize = () => {

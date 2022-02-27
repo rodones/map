@@ -81,11 +81,13 @@ export class Canvas extends LitElement {
     return this.#control;
   }
 
-  firstUpdated() {
+  async firstUpdated() {
     this.controller.createScene();
     this.controller.createRenderer();
     this.controller.createCamera();
-    this.controller.loadMap();
+    await this.controller.loadMap();
+    // Lets wait for a short time for better quality (for progrressive loading map)
+    setTimeout(this.#onFileLoaded, 250);
   }
 
   updated(changedProperties) {
@@ -96,6 +98,12 @@ export class Canvas extends LitElement {
       });
     }
   }
+
+  #onFileLoaded = () => {
+    this.dispatchEvent(
+      new CustomEvent("mapLoaded", { bubbles: true, composed: true }),
+    );
+  };
 
   async #changeController(control) {
     const ControlProvider = await this.#loadProviderClass(control);
