@@ -44,6 +44,12 @@ export default class PointerLockControls extends EventDispatcher {
     this.camera.position.addScaledVector(this.vector, distance);
   };
 
+  move = (v, delta) => {
+    this.camera.position.x += v.x * delta;
+    this.camera.position.y += v.y * delta;
+    this.camera.position.z += v.z * delta;
+  };
+
   moveRight = (distance) => {
     this.vector.setFromMatrixColumn(this.camera.matrix, 0);
     this.camera.position.addScaledVector(this.vector, distance);

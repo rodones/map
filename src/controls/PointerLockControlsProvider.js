@@ -4,14 +4,11 @@ import PointerLockControls from "./PointerLockControls";
 
 export default class PointerLockControlProvider extends ControlProvider {
   createControls() {
-    this.moveForward = false;
-    this.moveBackward = false;
-    this.moveLeft = false;
-    this.moveRight = false;
     this.canJump = false;
     this.runOffset = 1;
     this.walkOrbit = 0;
     this.walkOffset = 1;
+    this.canWalk = false;
 
     this.gravityOffset = 10;
 
@@ -58,20 +55,15 @@ export default class PointerLockControlProvider extends ControlProvider {
       // TODO cam direction
       let camDirection = new Vector3(0, 0, 0);
       this.controller.camera.getWorldDirection(camDirection);
-
+      this.direction.copy(camDirection);
       // soar in the sky to the map
-
-      this.direction.z = Number(this.moveForward) - Number(this.moveBackward);
-      this.direction.x = Number(this.moveRight) - Number(this.moveLeft);
-      this.direction.normalize(); // this ensures consistent movements in all directions
 
       const intersections = this.#raycast();
 
-      if (this.moveForward || this.moveBackward)
+      if (this.canWalk) {
         this.velocity.z = this.direction.z * 900.0 * delta * this.runOffset;
-      if (this.moveLeft || this.moveRight)
         this.velocity.x = this.direction.x * 900.0 * delta * this.runOffset;
-
+      }
       if (this.onObject(intersections) === true) {
         this.velocity.y = intersections[0].distance;
         if (this.velocity.x < 1 && this.velocity.z < 1) this.velocity.y = 0;
@@ -80,33 +72,26 @@ export default class PointerLockControlProvider extends ControlProvider {
         this.velocity.y -= this.gravityOffset * delta;
       }
 
-      if (intersections.length) {
-        intersections.forEach((inter) => {
-          let tempNorm = new Vector3(0, 0, 0).copy(inter.face.normal);
+      // if (intersections.length) {
+      //   intersections.forEach((inter) => {
+      //     let tempNorm = new Vector3(0, 0, 0).copy(inter.face.normal);
 
-          let tempCamDirection = new Vector3(0, 0, 0).copy(this.direction);
+      //     let tempCamDirection = new Vector3(0, 0, 0).copy(this.direction);
 
-          let tempVelocity = tempNorm.add(tempCamDirection);
+      //     let tempVelocity = tempNorm.add(tempCamDirection);
 
-          if (tempVelocity.x > 0.9 || tempVelocity.x < -0.9)
-            this.velocity.x = 0;
-          if (tempVelocity.z > 0.9 || tempVelocity.z < -0.9)
-            this.velocity.z = 0;
+      //     if (tempVelocity.x > 0.9 || tempVelocity.x < -0.9)
+      //       this.velocity.x = 0;
+      //     if (tempVelocity.z > 0.9 || tempVelocity.z < -0.9)
+      //       this.velocity.z = 0;
 
-          this.velocity.x *= tempVelocity.x;
-          this.velocity.y *= tempVelocity.y;
-          this.velocity.z *= tempVelocity.z;
-        });
-      }
-
-      this.controls.moveRight(this.velocity.x * delta);
-      this.controls.moveForward(this.velocity.z * delta);
-
-      this.controls.getObject().position.y += this.velocity.y * delta; // new behavior
-
-      // if (this.canWalk) {
-      //   this._walk(this.controls.getObject().position, delta);
+      //     this.velocity.x *= tempVelocity.x;
+      //     this.velocity.y *= tempVelocity.y;
+      //     this.velocity.z *= tempVelocity.z;
+      //   });
       // }
+
+      this.controls.move(this.velocity, delta);
     }
 
     this.prevTime = time;
@@ -177,22 +162,7 @@ export default class PointerLockControlProvider extends ControlProvider {
     switch (event.code) {
       case "ArrowUp":
       case "KeyW":
-        this.moveForward = true;
         this.canWalk = true;
-        break;
-      case "ArrowLeft":
-      case "KeyA":
-        this.moveLeft = true;
-        this.canWalk = true;
-        break;
-      case "ArrowDown":
-      case "KeyS":
-        this.moveBackward = true;
-        this.canWalk = true;
-        break;
-      case "ArrowRight":
-      case "KeyD":
-        this.moveRight = true;
         break;
       case "ShiftLeft":
         this.runOffset = 3.5;
@@ -210,22 +180,6 @@ export default class PointerLockControlProvider extends ControlProvider {
     switch (event.code) {
       case "ArrowUp":
       case "KeyW":
-        this.moveForward = false;
-        this.canWalk = false;
-        break;
-      case "ArrowLeft":
-      case "KeyA":
-        this.moveLeft = false;
-        this.canWalk = false;
-        break;
-      case "ArrowDown":
-      case "KeyS":
-        this.moveBackward = false;
-        this.canWalk = false;
-        break;
-      case "ArrowRight":
-      case "KeyD":
-        this.moveRight = false;
         this.canWalk = false;
         break;
       case "ShiftLeft":
