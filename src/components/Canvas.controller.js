@@ -33,7 +33,8 @@ export class CanvasController {
     /**
      * @type {ControlProvider}
      */
-    this.controlProvider = new ControlProvider(this);
+    this.controlProvider = new ControlProvider();
+    this.controlProvider.setController(this);
 
     host.addController(this);
   }
@@ -87,6 +88,8 @@ export class CanvasController {
     );
     this.camera.position.set(20, -10, 20);
     this.camera.rotation.set(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2);
+    this.#removeResizeHandler();
+    this.#addResizeHandler();
   }
 
   loadMap() {
@@ -123,23 +126,25 @@ export class CanvasController {
     }
   }
 
-  handleResize() {
-    window.addEventListener(
-      "resize",
-      () => {
-        const rect = this.canvas.getBoundingClientRect();
-        const width = rect.width;
-        const height = window.innerHeight;
+  #onResize = () => {
+    const rect = this.canvas.getBoundingClientRect();
+    const width = rect.width;
+    const height = window.innerHeight;
 
-        this.camera.aspect = width / height;
-        this.camera.updateProjectionMatrix();
-        this.renderer.setSize(width, height, false);
-        this.controlProvider.update();
+    this.camera.aspect = width / height;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(width, height, false);
+    this.controlProvider.update();
 
-        this.reDraw = true;
-      },
-      false,
-    );
+    this.reDraw = true;
+  };
+
+  #addResizeHandler() {
+    window.addEventListener("resize", this.#onResize, false);
+  }
+
+  #removeResizeHandler() {
+    window.removeEventListener("resize", this.#onResize, false);
   }
 
   createControls() {
@@ -180,4 +185,6 @@ export class ControlProvider {
   }
 
   destroy() {}
+
+  update() {}
 }

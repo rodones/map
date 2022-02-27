@@ -109,7 +109,6 @@ export default class PointerLockControlProvider extends ControlProvider {
     // if (this.canWalk) {
     //   this.#walk(this.controls.getObject().position, delta);
     // }
-
     this.prevTime = time;
 
     this.controller.renderer.render(
