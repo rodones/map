@@ -276,6 +276,7 @@ export class NexusObject extends Mesh {
     let B = new Vector3(0, 0, 0);
     let C = new Vector3(0, 0, 0);
     let norm = new Vector3(0,0,0);
+    let midPoint = new Vector3(0,0,0);
     for(var j = 0; j < nexus.basei.length; j += 3) {
       var a = face[j];
       var b = face[j+1];
@@ -294,13 +295,15 @@ export class NexusObject extends Mesh {
       if(distance == -2.0 || d < distance) {
         distance = d;
         intersect = hit;
-        new Triangle(A,B,C).getNormal(norm);
+        let face = new Triangle(A,B,C);
+        face.getNormal(norm);
+        face.getMidpoint(midPoint);
       }
     }
     
   
     if(distance == -2.0) return;
-    intersects.push({ distance: distance, point: intersect, face: {normal:norm}, object: this} );
+    intersects.push({ distance: distance, point: intersect, face: {normal:norm,midpoint:midPoint}, object: this} );
     return;
   }
 }
