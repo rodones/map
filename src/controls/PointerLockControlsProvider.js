@@ -56,8 +56,8 @@ export default class PointerLockControlProvider extends ControlProvider {
       this.velocity.z -= this.velocity.z * delta;
 
       // TODO cam direction
-      // let camDirection = new Vector3(0, 0, 0);
-      // this.controller.camera.getWorldDirection(camDirection);
+      let camDirection = new Vector3(0, 0, 0);
+      this.controller.camera.getWorldDirection(camDirection);
 
       // soar in the sky to the map
 
@@ -82,17 +82,20 @@ export default class PointerLockControlProvider extends ControlProvider {
 
       if (intersections.length) {
         intersections.forEach((inter) => {
-          console.log(inter);
+          let tempNorm = new Vector3(0, 0, 0).copy(inter.face.normal);
 
-          let norm = inter.face.normal;
-          console.log(norm);
-          if (
-            norm.y <= 0.01 &&
-            (norm.x >= 0.9 || norm.x <= -0.9 || norm.z >= 0.9 || norm.z <= -0.9)
-          ) {
-            this.velocity.x = -norm.x;
-            this.velocity.z = -norm.z;
-          }
+          let tempCamDirection = new Vector3(0, 0, 0).copy(this.direction);
+
+          let tempVelocity = tempNorm.add(tempCamDirection);
+
+          if (tempVelocity.x > 0.9 || tempVelocity.x < -0.9)
+            this.velocity.x = 0;
+          if (tempVelocity.z > 0.9 || tempVelocity.z < -0.9)
+            this.velocity.z = 0;
+
+          this.velocity.x *= tempVelocity.x;
+          this.velocity.y *= tempVelocity.y;
+          this.velocity.z *= tempVelocity.z;
         });
       }
 
