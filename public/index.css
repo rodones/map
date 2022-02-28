@@ -34,6 +34,15 @@ body {
   display: none;
 }
 
+#rodo-disclaimer {
+  position: absolute;
+  top: 8px;
+  left: 9px;
+  color: #9cafb5;
+  z-index: 999;
+  user-select: none;
+}
+
 .lds-ring {
   display: inline-block;
   position: relative;
