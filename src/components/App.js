@@ -4,6 +4,7 @@ export class App extends LitElement {
   static properties = {
     control: { type: String },
     model: { type: String },
+    _showAbout: { state: true },
   };
 
   static styles = css`
@@ -16,6 +17,7 @@ export class App extends LitElement {
 
   constructor() {
     super();
+    this._showAbout = false;
   }
 
   #changeMode(event) {
@@ -23,7 +25,11 @@ export class App extends LitElement {
   }
 
   #showAbout() {
-    alert("Rodones Map Viewer v0.3");
+    this._showAbout = true;
+  }
+
+  #hideAbout() {
+    this._showAbout = false;
   }
 
   #renderLayout() {
@@ -48,8 +54,23 @@ export class App extends LitElement {
     ></rodo-canvas>`;
   }
 
+  #renderModalProvider() {
+    return html`<rodo-modal-portal></rodo-modal-portal>`;
+  }
+
+  #renderAboutModal() {
+    return html`<rodo-about-modal
+      @close=${this.#hideAbout}
+    ></rodo-about-modal>`;
+  }
+
   render() {
-    return [this.#renderLayout(), this.#renderCanvas()];
+    return [
+      this.#renderModalProvider(),
+      this.#renderLayout(),
+      this.#renderCanvas(),
+      this._showAbout && this.#renderAboutModal(),
+    ];
   }
 }
 
