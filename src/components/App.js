@@ -1,4 +1,5 @@
 import { LitElement, html, css } from "lit";
+import info from "../icons/info";
 
 export class App extends LitElement {
   static properties = {
@@ -35,7 +36,9 @@ export class App extends LitElement {
   #renderLayout() {
     return html`
       <rodo-rectangular-layout position="right" align="right">
-        <rodo-button title="about" @click="${this.#showAbout}">A</rodo-button>
+        <rodo-button title="About" @click="${this.#showAbout}">
+          ${info}
+        </rodo-button>
       </rodo-rectangular-layout>
 
       <rodo-rectangular-layout position="bottom" align="right">
