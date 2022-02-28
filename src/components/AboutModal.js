@@ -21,6 +21,9 @@ export class AboutModal extends ModalElement {
       <main>
         <p>Rodones Map Viewer is a web based FPS mesh viwer.</p>
         <p>
+          Build Date: ${process.env.RODONES_MAP_BUILT_DATE}
+        </p>
+        <p>
           The <a href="https://github.com/rodones/map">source code</a> is
           published under BSD 3-Clause License.
         </p>
