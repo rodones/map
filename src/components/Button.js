@@ -12,7 +12,6 @@ export class Button extends LitElement {
       height: 40px;
       min-width: 40px;
       padding: 0px 8px;
-      text-align: center;
       border: 1px solid var(--rodo-button-border-color, #8699a6);
       border-radius: var(--rodo-button-border-radius, 2px);
       background-color: var(--rodo-button-background-color, #414952);
@@ -25,6 +24,12 @@ export class Button extends LitElement {
       height: 24px;
       min-width: 40px;
       padding: 0px 4px;
+    }
+
+    slot {
+      display: flex;
+      justify-content: center;
+      align-content: center;
     }
   `;
 
