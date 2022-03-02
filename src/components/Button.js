@@ -1,8 +1,10 @@
 import { LitElement, html, css } from "lit";
+import { classMap } from "lit/directives/class-map.js";
 
 export class Button extends LitElement {
   static properties = {
     title: { type: String },
+    size: { type: String },
   };
 
   static styles = css`
@@ -10,8 +12,6 @@ export class Button extends LitElement {
       height: 40px;
       min-width: 40px;
       padding: 0px 8px;
-      line-height: 34px;
-      text-align: center;
       border: 1px solid var(--rodo-button-border-color, #8699a6);
       border-radius: var(--rodo-button-border-radius, 2px);
       background-color: var(--rodo-button-background-color, #414952);
@@ -19,14 +19,32 @@ export class Button extends LitElement {
       cursor: pointer;
       margin: 0;
     }
+
+    button.small {
+      height: 24px;
+      min-width: 40px;
+      padding: 0px 4px;
+    }
+
+    slot {
+      display: flex;
+      justify-content: center;
+      align-content: center;
+    }
   `;
 
   constructor() {
     super();
+    this.size = "normal";
   }
 
   render() {
-    return html`<button title="${this.title}"><slot></slot></button>`;
+    return html`<button
+      class="${classMap({ small: this.size === "small" })}"
+      title="${this.title}"
+    >
+      <slot></slot>
+    </button>`;
   }
 }
 

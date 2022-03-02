@@ -15,6 +15,7 @@ const isDevelopment = process.env.NODE_ENV !== "production";
 
 // Pick environment variables start with RODONES_MAP_ (RODONES_MAP_EXAMPLE)
 const environment = R.pickBy(R.flip(R.startsWith(`RODONES_MAP_`)), process.env);
+environment.RODONES_MAP_BUILT_DATE = new Date().toUTCString();
 
 module.exports = {
   mode: isDevelopment ? "development" : "production",

@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap');
+
 body {
   margin: 0;
   padding: 0;
@@ -5,6 +7,7 @@ body {
   height: 100vh;
   overflow: hidden;
   background-color: black;
+  font-family: 'Inter', sans-serif;
 }
 
 #rodo-root {
@@ -14,6 +17,8 @@ body {
 
 #rodo-loading {
   position: absolute;
+  top: 0;
+  left: 0;
   color: white;
   width: 100%;
   height: 100%;
@@ -30,6 +35,15 @@ body {
 
 .hidden {
   display: none;
+}
+
+#rodo-disclaimer {
+  position: absolute;
+  top: 8px;
+  left: 9px;
+  color: #9cafb5;
+  z-index: 999;
+  user-select: none;
 }
 
 .lds-ring {
