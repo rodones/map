@@ -51,7 +51,8 @@ module.exports = {
   devServer: {
     compress: true,
     open: false,
-    hot: true,
+    hot: false,
+    liveReload: true,
     static: {
       directory: path.resolve(__dirname, "./public"),
       publicPath: "/",
