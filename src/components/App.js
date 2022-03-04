@@ -1,4 +1,5 @@
 import { LitElement, html, css } from "lit";
+import { ref, createRef } from "lit/directives/ref.js";
 import info from "../icons/info";
 
 export class App extends LitElement {
@@ -16,6 +17,8 @@ export class App extends LitElement {
       height: 100%;
     }
   `;
+
+  canvasRef = createRef();
 
   constructor() {
     super();
@@ -44,6 +47,7 @@ export class App extends LitElement {
       .slice(0, 3);
 
     this._camera = { position };
+    this.canvasRef.value.requestUpdate("camera", null);
   }
 
   #renderLayout() {
@@ -72,6 +76,7 @@ export class App extends LitElement {
       control="${this.control}"
       model="${this.model}"
       camera="${JSON.stringify(this._camera)}"
+      ${ref(this.canvasRef)}
     ></rodo-canvas>`;
   }
 
