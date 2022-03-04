@@ -44,6 +44,7 @@ export class Canvas extends LitElement {
   static properties = {
     control: { type: String },
     model: { type: String },
+    camera: { type: Object },
   };
 
   canvasRef = createRef();
@@ -97,6 +98,10 @@ export class Canvas extends LitElement {
         this.controller.createControls();
         this.controller.animate();
       });
+    }
+
+    if (changedProperties.has("camera")) {
+      this.controller.updateCamera(this.camera);
     }
   }
 

@@ -6,6 +6,7 @@ export class App extends LitElement {
     control: { type: String },
     model: { type: String },
     _showAbout: { state: true },
+    _camera: { state: true },
   };
 
   static styles = css`
@@ -19,6 +20,7 @@ export class App extends LitElement {
   constructor() {
     super();
     this._showAbout = false;
+    this._camera = { position: [20, -10, 20] };
   }
 
   #changeMode(event) {
@@ -33,12 +35,27 @@ export class App extends LitElement {
     this._showAbout = false;
   }
 
+  #warp() {
+    const position = window
+      .prompt("Position", "500,-10,20")
+      .split(",")
+      .filter((x) => x !== "" && !Number.isNaN(x))
+      .concat([0, 0, 0])
+      .slice(0, 3);
+
+    this._camera = { position };
+  }
+
   #renderLayout() {
     return html`
       <rodo-rectangular-layout position="right" align="right">
         <rodo-button title="About" @click="${this.#showAbout}">
           ${info}
         </rodo-button>
+      </rodo-rectangular-layout>
+
+      <rodo-rectangular-layout position="right" align="left">
+        <rodo-button title="About" @click="${this.#warp}"> W </rodo-button>
       </rodo-rectangular-layout>
 
       <rodo-rectangular-layout position="bottom" align="right">
@@ -54,6 +71,7 @@ export class App extends LitElement {
     return html`<rodo-canvas
       control="${this.control}"
       model="${this.model}"
+      camera="${JSON.stringify(this._camera)}"
     ></rodo-canvas>`;
   }
 

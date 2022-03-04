@@ -90,6 +90,12 @@ export class CanvasController {
     this.#addResizeHandler();
   }
 
+  updateCamera({ position }) {
+    if (Array.isArray(position)) {
+      this.camera.position.set(...position);
+    }
+  }
+
   async loadMap() {
     const material = new MeshBasicMaterial({
       color: true,
