@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - "*"
+
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout rodones-map
+        uses: actions/checkout@v3
+        with:
+          path: rodones-map
+      - name: Checkout rodones-static
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ secrets.RODONES_STATIC_SITE_REPO }}
+          token: ${{ secrets.RODONES_STATIC_SITE_GH_TOKEN }}
+          path: rodones-static
+      - name: Build and publish
+        run: |
+          cd rodones-static
+          git config --global user.email "github-actions@github.com"
+          git config --global user.name "rodones-ci"
+          echo 'RODONES_MAP_FOLDER="../rodones-map"' > .env
+          ./sync.sh "$([[ "${{ github.ref_name }}" == "master" ]] && echo "map" || echo "map-${{ github.ref_name }}")"
+          
