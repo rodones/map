@@ -36,10 +36,6 @@ module.exports = {
           },
         },
       },
-      {
-        test: /\.css$/i,
-        use: ["style-loader", "css-loader"],
-      },
     ],
   },
   resolve: {
@@ -55,7 +51,8 @@ module.exports = {
   devServer: {
     compress: true,
     open: false,
-    hot: true,
+    hot: false,
+    liveReload: true,
     static: {
       directory: path.resolve(__dirname, "./public"),
       publicPath: "/",
@@ -74,18 +71,19 @@ module.exports = {
     new CopyWebpackPlugin({
       patterns: [{ from: "public" }],
     }),
-    new CompressionPlugin({
-      filename: "[path][base].br",
-      algorithm: "brotliCompress",
-      test: /\.(js|css|html|svg)$/,
-      compressionOptions: {
-        params: {
-          [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
+    !isDevelopment &&
+      new CompressionPlugin({
+        filename: "[path][base].br",
+        algorithm: "brotliCompress",
+        test: /\.(js|css|html|svg)$/,
+        compressionOptions: {
+          params: {
+            [zlib.constants.BROTLI_PARAM_QUALITY]: 11,
+          },
         },
-      },
-      threshold: 10240,
-      minRatio: 0.8,
-      deleteOriginalAssets: false,
-    }),
+        threshold: 10240,
+        minRatio: 0.8,
+        deleteOriginalAssets: false,
+      }),
   ]),
 };
