@@ -3,7 +3,8 @@
  * Source: https://github.com/mrdoob/three.js/blob/master/examples/jsm/controls/PointerLockControls.js
  */
 
-import { Euler, EventDispatcher, Vector3 } from "three";
+import { Matrix4 } from "three";
+import { Euler, EventDispatcher, Vector3, MathUtils } from "three";
 
 export default class PointerLockControls extends EventDispatcher {
   constructor(camera, element) {
@@ -21,7 +22,7 @@ export default class PointerLockControls extends EventDispatcher {
 
     this.euler = new Euler(0, 0, 0, "YXZ");
     this.direction = new Vector3(0, 0, -1);
-    this.vector = new Vector3();
+    this.up = new Vector3(0, 1, 0);
 
     this.connect();
   }
@@ -38,11 +39,11 @@ export default class PointerLockControls extends EventDispatcher {
     return v.copy(this.direction).applyQuaternion(this.camera.quaternion);
   };
 
-  moveForward = (distance) => {
-    this.vector.setFromMatrixColumn(this.camera.matrix, 0);
-    this.vector.crossVectors(this.camera.up, this.vector);
-    this.camera.position.addScaledVector(this.vector, distance);
-  };
+  // moveForward = (distance) => {
+  //   this.vector.setFromMatrixColumn(this.camera.matrix, 0);
+  //   this.vector.crossVectors(this.camera.up, this.vector);
+  //   this.camera.position.addScaledVector(this.vector, distance);
+  // };
 
   move = (v, delta) => {
     this.camera.position.x += v.x * delta;
@@ -50,10 +51,10 @@ export default class PointerLockControls extends EventDispatcher {
     this.camera.position.z += v.z * delta;
   };
 
-  moveRight = (distance) => {
-    this.vector.setFromMatrixColumn(this.camera.matrix, 0);
-    this.camera.position.addScaledVector(this.vector, distance);
-  };
+  // moveRight = (distance) => {
+  //   this.vector.setFromMatrixColumn(this.camera.matrix, 0);
+  //   this.camera.position.addScaledVector(this.vector, distance);
+  // };
 
   lock = () => {
     this.element.requestPointerLock();
@@ -101,17 +102,32 @@ export default class PointerLockControls extends EventDispatcher {
       this.unlocked();
     }
   };
+  
+  calculateNewDirection() { // CALCULATE UP VECTOR SOMEHOW
+    if(this.direction.z === -1) {
+      this.camera.getWorldDirection(this.direction);
+      return;
+    }
+    const newDirection = new Vector3();
+    const oldDirection = this.direction;
+    this.camera.getWorldDirection(newDirection);
+    // const newAngle = newDirection.angleTo(oldDirection);
 
-  onMouseMove = (event) => {
+    // this.up.applyAxisAngle(new Vector3().copy(this.up).cross(oldDirection).normalize(), newAngle); // random bullshit deneme büyüsü    
+    // console.log(this.camera.up);
+    this.direction = newDirection;
+  }
+
+  onMouseMove = (event) => { 
     if (this.isLocked === false) return;
-
+    // console.log(this.up)
     const movementX =
       event.movementX || event.mozMovementX || event.webkitMovementX || 0;
     const movementY =
       event.movementY || event.mozMovementY || event.webkitMovementY || 0;
 
     this.euler.setFromQuaternion(this.camera.quaternion);
-
+    // const l = this.euler.x;
     this.euler.y -= movementX * 0.002;
     this.euler.x -= movementY * 0.002;
 
@@ -119,9 +135,10 @@ export default class PointerLockControls extends EventDispatcher {
       Math.PI / 2 - this.maxPolarAngle,
       Math.min(Math.PI / 2 - this.minPolarAngle, this.euler.x),
     );
-
+    // console.log(this.euler.x-l)
     this.camera.quaternion.setFromEuler(this.euler);
-
+    
+    this.calculateNewDirection()
     this.changed();
   };
 
