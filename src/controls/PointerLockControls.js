@@ -117,6 +117,10 @@ export default class PointerLockControls extends EventDispatcher {
     // this.up.applyAxisAngle(new Vector3().copy(this.up).cross(oldDirection).normalize(), newAngle); // random bullshit deneme büyüsü
     // console.log(this.camera.up);
     this.direction = newDirection;
+    var rotationMatrix = new Matrix4().extractRotation(this.camera.matrixWorld);
+    var up = new Vector3(0, 1, 0).applyMatrix4(rotationMatrix).normalize();
+
+    console.log(up, this.direction);
   }
 
   onMouseMove = (event) => {
