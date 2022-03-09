@@ -102,9 +102,10 @@ export default class PointerLockControls extends EventDispatcher {
       this.unlocked();
     }
   };
-  
-  calculateNewDirection() { // CALCULATE UP VECTOR SOMEHOW
-    if(this.direction.z === -1) {
+
+  calculateNewDirection() {
+    // CALCULATE UP VECTOR SOMEHOW
+    if (this.direction.z === -1) {
       this.camera.getWorldDirection(this.direction);
       return;
     }
@@ -113,12 +114,12 @@ export default class PointerLockControls extends EventDispatcher {
     this.camera.getWorldDirection(newDirection);
     // const newAngle = newDirection.angleTo(oldDirection);
 
-    // this.up.applyAxisAngle(new Vector3().copy(this.up).cross(oldDirection).normalize(), newAngle); // random bullshit deneme büyüsü    
+    // this.up.applyAxisAngle(new Vector3().copy(this.up).cross(oldDirection).normalize(), newAngle); // random bullshit deneme büyüsü
     // console.log(this.camera.up);
     this.direction = newDirection;
   }
 
-  onMouseMove = (event) => { 
+  onMouseMove = (event) => {
     if (this.isLocked === false) return;
     // console.log(this.up)
     const movementX =
@@ -137,8 +138,8 @@ export default class PointerLockControls extends EventDispatcher {
     );
     // console.log(this.euler.x-l)
     this.camera.quaternion.setFromEuler(this.euler);
-    
-    this.calculateNewDirection()
+
+    this.calculateNewDirection();
     this.changed();
   };
 

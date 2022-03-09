@@ -42,14 +42,14 @@ export default class PointerLockControlProvider extends ControlProvider {
   }
 
   calculateVelocity() {
-    const {camera} = this.controller
-    
+    const { camera } = this.controller;
+
     // TODO intersection alacak bu, az önceki dünyadaki hızını kullanarak çarpmaların yönüne göre sıfırlıycak bazı hızları (kaya kaya gitme)
   }
 
   animate() {
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
-    
+
     const time = performance.now();
 
     if (!this.controls.isLocked) {
@@ -70,7 +70,8 @@ export default class PointerLockControlProvider extends ControlProvider {
 
     // TODO cam direction
     let camDirection = new Vector3(0, 0, 0);
-    let cameraDirection = this.controller.camera.getWorldDirection(camDirection);
+    let cameraDirection =
+      this.controller.camera.getWorldDirection(camDirection);
     this.m = this.m + 1;
     this.direction.copy(camDirection);
     // soar in the sky to the map
@@ -97,10 +98,8 @@ export default class PointerLockControlProvider extends ControlProvider {
 
         let tempVelocity = tempNorm.add(tempCamDirection);
 
-        if (tempVelocity.x > 0.9 || tempVelocity.x < -0.9)
-          this.velocity.x = 0;
-        if (tempVelocity.z > 0.9 || tempVelocity.z < -0.9)
-          this.velocity.z = 0;
+        if (tempVelocity.x > 0.9 || tempVelocity.x < -0.9) this.velocity.x = 0;
+        if (tempVelocity.z > 0.9 || tempVelocity.z < -0.9) this.velocity.z = 0;
 
         this.velocity.x *= tempVelocity.x;
         this.velocity.y *= tempVelocity.y;
@@ -172,7 +171,8 @@ export default class PointerLockControlProvider extends ControlProvider {
     document.removeEventListener("keyup", this.#onKeyUp);
   }
 
-  #onKeyDown = (event) => { // key pressed
+  #onKeyDown = (event) => {
+    // key pressed
     event.preventDefault();
 
     switch (event.code) {
@@ -191,25 +191,25 @@ export default class PointerLockControlProvider extends ControlProvider {
         this.relativeWalk.setZ(-1);
         break;
       case "ArrowUp":
-        this.controls.euler.x += 0.2
+        this.controls.euler.x += 0.2;
         this.controls.camera.quaternion.setFromEuler(this.controls.euler);
-        this.controls.calculateNewDirection()
+        this.controls.calculateNewDirection();
         break;
       case "ArrowDown":
-        this.controls.euler.x -= 0.2
+        this.controls.euler.x -= 0.2;
         this.controls.camera.quaternion.setFromEuler(this.controls.euler);
-        this.controls.calculateNewDirection()
+        this.controls.calculateNewDirection();
         break;
       case "ArrowLeft":
-        this.controls.euler.y += 0.2
+        this.controls.euler.y += 0.2;
         this.controls.camera.quaternion.setFromEuler(this.controls.euler);
-        this.controls.calculateNewDirection()
+        this.controls.calculateNewDirection();
         break;
       case "ArrowRight":
-          this.controls.euler.y -= 0.2
-          this.controls.camera.quaternion.setFromEuler(this.controls.euler);
-          this.controls.calculateNewDirection()
-          break;
+        this.controls.euler.y -= 0.2;
+        this.controls.camera.quaternion.setFromEuler(this.controls.euler);
+        this.controls.calculateNewDirection();
+        break;
       case "ShiftLeft":
         this.runOffset = 3.5;
         break;
