@@ -3,11 +3,11 @@
  * Source: https://github.com/mrdoob/three.js/blob/master/examples/jsm/controls/PointerLockControls.js
  */
 
-import { Matrix4 } from "three";
+import { Matrix4, Raycaster } from "three";
 import { Euler, EventDispatcher, Vector3, MathUtils } from "three";
 
 export default class PointerLockControls extends EventDispatcher {
-  constructor(camera, element) {
+  constructor(camera, element, scene) {
     super();
 
     if (!camera) throw new Error("The parameter 'camera' is required!");
@@ -15,46 +15,171 @@ export default class PointerLockControls extends EventDispatcher {
 
     this.camera = camera;
     this.element = element;
+    this.scene = scene
 
-    this.isLocked = false;
+    this.isLocked = false; // parameter for checking can camera move
+
+    // Constants
     this.minPolarAngle = 0;
     this.maxPolarAngle = Math.PI;
+    this.delta = 0.165
 
-    this.euler = new Euler(0, 0, 0, "YXZ");
-    this.direction = new Vector3(0, 0, -1);
-    this.up = new Vector3(0, 1, 0);
+    this.keys = [0, 0, 0, 0] // keys pressed, w a s d
+
+    this.velocity = new Vector3(0, -1, 0); // Velocity to world
+    this.relativeVelocity = new Vector3(0, 0, 0); // This indicates of camera's relative w a s d walk. a-d = x direction, w-s = z direction.
+
+    this.direction = new Vector3(0, 0, -1); // Camera direction vector
+    this.up = this.camera.up; // Camera up Vector
+    this.right = new Vector3(); // Camera right Vector
+    this.euler = new Euler(0, 0, 0, "YXZ"); // camera angle in euler format
+
+    this.raycaster = new Raycaster( // TODO: Gelecekte bunu değiştir. Gökberke sor şu alltaki sikleri hep updatelemem gerekiyor mu?
+      this.camera.position,
+      this.direction,
+      0,
+      10,
+    );
 
     this.connect();
+  }
+
+  move = (v) => {
+    this.camera.position.x += v.x * this.delta;
+    this.camera.position.y += v.y * this.delta;
+    this.camera.position.z += v.z * this.delta;
+  };
+
+  #raycast() {
+    this.raycaster.ray.origin = this.camera.position.clone();
+    this.raycaster.ray.origin.y -= 5; // insan gözü gibi olsun yeri aşşağı indiriyor bu
+    return this.raycaster.intersectObject(
+      this.scene.getObjectByName("MAP_START"),
+    );
+  }
+
+  animate() {
+    const intersections = this.#raycast();
+
+    if (intersections.length) {
+      let intersectedVelo = this.calculateIntersectedVelocity(intersections);
+      this.move(intersectedVelo);
+    } else {
+      this.move(this.velocity);
+    }
+  }
+
+  calculateIntersectedVelocity(intersections) { // calculate intersected velocity
+    let newVelocity = this.velocity.clone();
+    let k = new Vector3();
+
+    intersections.forEach((inter) => { // TODO Intersectionlar 1 olarak çıkıyor hep :(
+      newVelocity.add(inter.face.normal);
+      k.add(inter.face.normal);
+    });
+
+    return newVelocity;
+  }
+
+  calculateVelocity() { // calculate world velocity 
+    this.calculateRelativeVelocity();
+    this.calculateRightVector();
+
+    let dirVector = this.direction.clone()
+    let rightVector = this.right.clone()
+
+    dirVector.multiplyScalar(-this.relativeVelocity.z).add(rightVector.multiplyScalar(this.relativeVelocity.x))
+    this.velocity.x = dirVector.x;
+    this.velocity.z = dirVector.z;
+  }
+
+  calculateRelativeVelocity() { // calculate relative velocity gathered from wasd keys
+    this.relativeVelocity.x = this.keys[3] - this.keys[1]; // a - d
+    this.relativeVelocity.z = this.keys[2] - this.keys[0]; // w - s
+  }
+
+  calculateNewDirection() { // calculate world direction
+    this.calculateUpVector();
+    this.camera.getWorldDirection(this.direction);
+  }
+
+  calculateUpVector() { // calculates camera up vector
+    var rotationMatrix = new Matrix4().extractRotation(this.camera.matrixWorld);
+    this.camera.up = new Vector3(0, 1, 0).applyMatrix4(rotationMatrix).normalize();
+    this.up = this.camera.up
+  }
+
+  calculateRightVector() { // calculate camera right vector
+    this.right.crossVectors(this.direction, this.up);
+  }
+
+  onMouseMove = (event) => {
+    if (this.isLocked === false) return;
+
+    const movementX =
+      event.movementX || event.mozMovementX || event.webkitMovementX || 0;
+    const movementY =
+      event.movementY || event.mozMovementY || event.webkitMovementY || 0;
+
+    this.euler.setFromQuaternion(this.camera.quaternion);
+
+    this.euler.y -= movementX * 0.002;
+    this.euler.x -= movementY * 0.002;
+
+    this.euler.x = Math.max(
+      Math.PI / 2 - this.maxPolarAngle,
+      Math.min(Math.PI / 2 - this.minPolarAngle, this.euler.x),
+    );
+
+    this.camera.quaternion.setFromEuler(this.euler);
+
+    this.calculateNewDirection();
+    this.changed();
+  };
+
+  onKeyDown = (event) => {
+    event.preventDefault();
+
+    switch (event.code) {
+      case "KeyW":
+        this.keys[0] = 1;
+        break;
+      case "KeyA":
+        this.keys[1] = 1;
+        break;
+      case "KeyS":
+        this.keys[2] = 1;
+        break;
+      case "KeyD":
+        this.keys[3] = 1;
+        break;
+    }
+    this.calculateVelocity();
+  }
+
+  onKeyUp = (event) => {
+    event.preventDefault();
+
+    switch (event.code) {
+      case "KeyW":
+        this.keys[0] = 0;
+        break;
+      case "KeyA":
+        this.keys[1] = 0;
+        break;
+      case "KeyS":
+        this.keys[2] = 0;
+        break;
+      case "KeyD":
+        this.keys[3] = 0;
+        break;
+    }
+    this.calculateVelocity();
   }
 
   dispose = () => {
     return this.disconnect();
   };
-
-  getObject = () => {
-    return this.camera;
-  };
-
-  getDirection = (v) => {
-    return v.copy(this.direction).applyQuaternion(this.camera.quaternion);
-  };
-
-  // moveForward = (distance) => {
-  //   this.vector.setFromMatrixColumn(this.camera.matrix, 0);
-  //   this.vector.crossVectors(this.camera.up, this.vector);
-  //   this.camera.position.addScaledVector(this.vector, distance);
-  // };
-
-  move = (v, delta) => {
-    this.camera.position.x += v.x * delta;
-    this.camera.position.y += v.y * delta;
-    this.camera.position.z += v.z * delta;
-  };
-
-  // moveRight = (distance) => {
-  //   this.vector.setFromMatrixColumn(this.camera.matrix, 0);
-  //   this.camera.position.addScaledVector(this.vector, distance);
-  // };
 
   lock = () => {
     this.element.requestPointerLock();
@@ -103,48 +228,8 @@ export default class PointerLockControls extends EventDispatcher {
     }
   };
 
-  calculateNewDirection() {
-    // CALCULATE UP VECTOR SOMEHOW
-    if (this.direction.z === -1) {
-      this.camera.getWorldDirection(this.direction);
-      return;
-    }
-    const newDirection = new Vector3();
-    const oldDirection = this.direction;
-    this.camera.getWorldDirection(newDirection);
-    // const newAngle = newDirection.angleTo(oldDirection);
-
-    // this.up.applyAxisAngle(new Vector3().copy(this.up).cross(oldDirection).normalize(), newAngle); // random bullshit deneme büyüsü
-    // console.log(this.camera.up);
-    this.direction = newDirection;
-    var rotationMatrix = new Matrix4().extractRotation(this.camera.matrixWorld);
-    var up = new Vector3(0, 1, 0).applyMatrix4(rotationMatrix).normalize();
-
-    console.log(up, this.direction);
-  }
-
-  onMouseMove = (event) => {
-    if (this.isLocked === false) return;
-    // console.log(this.up)
-    const movementX =
-      event.movementX || event.mozMovementX || event.webkitMovementX || 0;
-    const movementY =
-      event.movementY || event.mozMovementY || event.webkitMovementY || 0;
-
-    this.euler.setFromQuaternion(this.camera.quaternion);
-    // const l = this.euler.x;
-    this.euler.y -= movementX * 0.002;
-    this.euler.x -= movementY * 0.002;
-
-    this.euler.x = Math.max(
-      Math.PI / 2 - this.maxPolarAngle,
-      Math.min(Math.PI / 2 - this.minPolarAngle, this.euler.x),
-    );
-    // console.log(this.euler.x-l)
-    this.camera.quaternion.setFromEuler(this.euler);
-
-    this.calculateNewDirection();
-    this.changed();
+  getObject = () => {
+    return this.camera;
   };
 
   changed = () => {
