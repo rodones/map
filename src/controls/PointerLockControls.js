@@ -22,11 +22,12 @@ export default class PointerLockControls extends EventDispatcher {
     // Constants
     this.minPolarAngle = 0;
     this.maxPolarAngle = Math.PI;
-    this.delta = 0.165
+    this.delta = 0.250
 
     this.keys = [0, 0, 0, 0] // keys pressed, w a s d
 
     this.velocity = new Vector3(0, -1, 0); // Velocity to world
+    this.velocity2 = new Vector3(0, -1, 0);
     this.relativeVelocity = new Vector3(0, 0, 0); // This indicates of camera's relative w a s d walk. a-d = x direction, w-s = z direction.
 
     this.direction = new Vector3(0, 0, -1); // Camera direction vector
@@ -46,27 +47,43 @@ export default class PointerLockControls extends EventDispatcher {
 
   move = (v) => {
     this.camera.position.x += v.x * this.delta;
-    this.camera.position.y += v.y * this.delta;
+    this.camera.position.y += v.y * this.delta * 2;
     this.camera.position.z += v.z * this.delta;
   };
 
   #raycast() {
     this.raycaster.ray.origin = this.camera.position.clone();
-    this.raycaster.ray.origin.y -= 5; // insan gözü gibi olsun yeri aşşağı indiriyor bu
-    return this.raycaster.intersectObject(
+    this.raycaster.ray.direction = this.velocity2.clone();
+    // this.raycaster.ray.origin.y -= 5; // insan gözü gibi olsun yeri aşşağı indiriyor bu
+    let k = this.raycaster.intersectObject(
       this.scene.getObjectByName("MAP_START"),
     );
+    this.raycaster.ray.direction = new Vector3(0,-1,0);
+    k.push(...this.raycaster.intersectObject(
+      this.scene.getObjectByName("MAP_START"),
+    ));
+
+    const isadded = {};
+    const newk = [];
+    
+    k.forEach(m => {
+      if (!isadded[`${m.face.normal.x},${m.face.normal.y},${m.face.normal.z}`]) {
+        isadded[`${m.face.normal.x},${m.face.normal.y},${m.face.normal.z}`] = true;
+        newk.push(m);
+      }
+    });
+    return newk;
   }
 
   animate() {
     const intersections = this.#raycast();
 
     if (intersections.length) {
-      let intersectedVelo = this.calculateIntersectedVelocity(intersections);
-      this.move(intersectedVelo);
-    } else {
-      this.move(this.velocity);
+      this.velocity2 = this.calculateIntersectedVelocity(intersections).clone();
     }
+    this.move(this.velocity2);
+    this.velocity2 = this.velocity.clone();
+
   }
 
   calculateIntersectedVelocity(intersections) { // calculate intersected velocity
@@ -77,7 +94,7 @@ export default class PointerLockControls extends EventDispatcher {
       newVelocity.add(inter.face.normal);
       k.add(inter.face.normal);
     });
-
+    
     return newVelocity;
   }
 

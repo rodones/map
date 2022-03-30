@@ -249,7 +249,7 @@ export class NexusObject extends Mesh {
 
   raycast(raycaster, intersects) {
     if(!this.geometry.instance) return;
-
+    const distconst = -10.0
     var nexus = this.geometry.instance.mesh;
     if(!nexus.sphere) return;
   
@@ -262,9 +262,9 @@ export class NexusObject extends Mesh {
     var m = this.matrixWorld.invert()
     var ray = new Ray();
     ray.copy(raycaster.ray).applyMatrix4(m);
-  
+
     var point = new Vector3(0, 0, 0);
-    var distance = -2.0;
+    var distance = distconst;
     var intersect = raycaster.ray.intersectSphere( sphere, point );
     if(!intersect)
       return;
@@ -292,7 +292,7 @@ export class NexusObject extends Mesh {
       hit.applyMatrix4(this.matrixWorld);
       var d = hit.distanceTo(raycaster.ray.origin);
       if(d < raycaster.near || d > raycaster.far ) continue;
-      if(distance == -2.0 || d < distance) {
+      if(distance == distconst || d < distance) {
         distance = d;
         intersect = hit;
         let face = new Triangle(A,B,C);
@@ -302,7 +302,7 @@ export class NexusObject extends Mesh {
     }
     
   
-    if(distance == -2.0) return;
+    if(distance == distconst) return;
     intersects.push({ distance: distance, point: intersect, face: {normal:norm,midpoint:midPoint}, object: this} );
     return;
   }
