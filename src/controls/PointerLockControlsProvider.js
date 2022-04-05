@@ -6,7 +6,7 @@ export default class PointerLockControlProvider extends ControlProvider {
     this.controls = new PointerLockControls(
       this.controller.camera,
       this.controller.canvas,
-      this.controller.scene
+      this.controller.scene,
     );
 
     this.#initPointerLockInterface();

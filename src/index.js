@@ -3,7 +3,7 @@ import "./components";
 
 window.onload = () => {
   const modelBases = {
-    digitalocean: "https://rodones.fra1.digitaloceanspaces.com/map/meshes/",
+    digitalocean: "https://rodones2.fra1.digitaloceanspaces.com/map/meshes/",
     static: "/static/",
   };
 
