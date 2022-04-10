@@ -39,7 +39,7 @@ export default class PointerLockControls extends EventDispatcher {
       this.camera.position,
       this.direction,
       0,
-      10,
+      5,
     );
 
     this.connect();
@@ -54,18 +54,18 @@ export default class PointerLockControls extends EventDispatcher {
   #raycast() {
     this.raycaster.ray.origin = this.camera.position.clone();
     this.raycaster.ray.direction = this.velocity2.clone();
-    // this.raycaster.ray.origin.y -= 5; // insan gözü gibi olsun yeri aşşağı indiriyor bu
+    // this.raycaster.ray.origin.y -= 2; // insan gözü gibi olsun yeri aşşağı indiriyor bu
     let k = this.raycaster.intersectObject(
       this.scene.getObjectByName("MAP_START"),
     );
-    this.raycaster.ray.direction = new Vector3(0,-1,0);
+    this.raycaster.ray.direction = new Vector3(0, -1, 0);
     k.push(...this.raycaster.intersectObject(
       this.scene.getObjectByName("MAP_START"),
     ));
 
     const isadded = {};
     const newk = [];
-    
+
     k.forEach(m => {
       if (!isadded[`${m.face.normal.x},${m.face.normal.y},${m.face.normal.z}`]) {
         isadded[`${m.face.normal.x},${m.face.normal.y},${m.face.normal.z}`] = true;
@@ -87,16 +87,34 @@ export default class PointerLockControls extends EventDispatcher {
   }
 
   calculateIntersectedVelocity(intersections) { // calculate intersected velocity
-    let newVelocity = this.velocity.clone();
-    let k = new Vector3();
+    let blockedVelocity = new Vector3(0, 0, 0);
 
     intersections.forEach((inter) => { // TODO Intersectionlar 1 olarak çıkıyor hep :(
-      newVelocity.add(inter.face.normal);
-      k.add(inter.face.normal);
+      blockedVelocity.add(inter.face.normal);
     });
     
-    return newVelocity;
+    blockedVelocity.y = Math.max(blockedVelocity.y, 1)
+
+    let k = this.calculateStoppedVelocity(this.velocity.clone(), blockedVelocity.clone().clampScalar(-1, 1));
+
+    return k
   }
+
+  calculateStoppedVelocity(velo, blockedVelo) {
+    return new Vector3(this.blockVelocity(velo.x, blockedVelo.x),
+      this.blockVelocity(velo.y, blockedVelo.y),
+      this.blockVelocity(velo.z, blockedVelo.z));
+  }
+
+  blockVelocity(value, blockValue) {
+    if (Math.abs(blockValue) > Math.abs(value)) return 0;
+
+    return value + blockValue
+  }
+
+  // clamp(val, min, max) {
+  //   return Math.min(Math.max(val, max), min)
+  // }
 
   calculateVelocity() { // calculate world velocity 
     this.calculateRelativeVelocity();
@@ -104,8 +122,9 @@ export default class PointerLockControls extends EventDispatcher {
 
     let dirVector = this.direction.clone()
     let rightVector = this.right.clone()
+  
+    dirVector.multiplyScalar(-this.relativeVelocity.z).add(rightVector.multiplyScalar(this.relativeVelocity.x)).clampScalar(-1, 1)
 
-    dirVector.multiplyScalar(-this.relativeVelocity.z).add(rightVector.multiplyScalar(this.relativeVelocity.x))
     this.velocity.x = dirVector.x;
     this.velocity.z = dirVector.z;
   }
