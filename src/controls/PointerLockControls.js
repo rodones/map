@@ -15,16 +15,16 @@ export default class PointerLockControls extends EventDispatcher {
 
     this.camera = camera;
     this.element = element;
-    this.scene = scene
+    this.scene = scene;
 
     this.isLocked = false; // parameter for checking can camera move
 
     // Constants
     this.minPolarAngle = 0;
     this.maxPolarAngle = Math.PI;
-    this.delta = 0.250
+    this.delta = 0.25;
 
-    this.keys = [0, 0, 0, 0] // keys pressed, w a s d
+    this.keys = [0, 0, 0, 0]; // keys pressed, w a s d
 
     this.velocity = new Vector3(0, -1, 0); // Velocity to world
     this.velocity2 = new Vector3(0, -1, 0);
@@ -35,7 +35,7 @@ export default class PointerLockControls extends EventDispatcher {
     this.right = new Vector3(); // Camera right Vector
     this.euler = new Euler(0, 0, 0, "YXZ"); // camera angle in euler format
 
-    this.raycaster = new Raycaster( // TODO: Gelecekte bunu değiştir. Gökberke sor şu alltaki sikleri hep updatelemem gerekiyor mu?
+    this.raycaster = new Raycaster(
       this.camera.position,
       this.direction,
       0,
@@ -83,13 +83,12 @@ export default class PointerLockControls extends EventDispatcher {
     }
     this.move(this.velocity2);
     this.velocity2 = this.velocity.clone();
-
   }
 
   calculateIntersectedVelocity(intersections) { // calculate intersected velocity
     let blockedVelocity = new Vector3(0, 0, 0);
 
-    intersections.forEach((inter) => { // TODO Intersectionlar 1 olarak çıkıyor hep :(
+    intersections.forEach((inter) => {
       blockedVelocity.add(inter.face.normal);
     });
     
@@ -112,10 +111,6 @@ export default class PointerLockControls extends EventDispatcher {
     return value + blockValue
   }
 
-  // clamp(val, min, max) {
-  //   return Math.min(Math.max(val, max), min)
-  // }
-
   calculateVelocity() { // calculate world velocity 
     this.calculateRelativeVelocity();
     this.calculateRightVector();
@@ -129,23 +124,29 @@ export default class PointerLockControls extends EventDispatcher {
     this.velocity.z = dirVector.z;
   }
 
-  calculateRelativeVelocity() { // calculate relative velocity gathered from wasd keys
+  calculateRelativeVelocity() {
+    // calculate relative velocity gathered from wasd keys
     this.relativeVelocity.x = this.keys[3] - this.keys[1]; // a - d
     this.relativeVelocity.z = this.keys[2] - this.keys[0]; // w - s
   }
 
-  calculateNewDirection() { // calculate world direction
+  calculateNewDirection() {
+    // calculate world direction
     this.calculateUpVector();
     this.camera.getWorldDirection(this.direction);
   }
 
-  calculateUpVector() { // calculates camera up vector
+  calculateUpVector() {
+    // calculates camera up vector
     var rotationMatrix = new Matrix4().extractRotation(this.camera.matrixWorld);
-    this.camera.up = new Vector3(0, 1, 0).applyMatrix4(rotationMatrix).normalize();
-    this.up = this.camera.up
+    this.camera.up = new Vector3(0, 1, 0)
+      .applyMatrix4(rotationMatrix)
+      .normalize();
+    this.up = this.camera.up;
   }
 
-  calculateRightVector() { // calculate camera right vector
+  calculateRightVector() {
+    // calculate camera right vector
     this.right.crossVectors(this.direction, this.up);
   }
 
@@ -191,7 +192,7 @@ export default class PointerLockControls extends EventDispatcher {
         break;
     }
     this.calculateVelocity();
-  }
+  };
 
   onKeyUp = (event) => {
     event.preventDefault();
@@ -211,7 +212,7 @@ export default class PointerLockControls extends EventDispatcher {
         break;
     }
     this.calculateVelocity();
-  }
+  };
 
   dispose = () => {
     return this.disconnect();
