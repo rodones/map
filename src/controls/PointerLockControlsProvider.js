@@ -217,12 +217,15 @@ export default class PointerLockControlProvider extends ControlProvider {
         console.log(res.data);
 
         if (res.data[0]) {
-          const { width, height } = this.controller.host.imageViewerRef.value;
-          const file = res.data[0].replaceAll(
-            "https://rodones-images2.fra1.digitaloceanspaces.com/",
-            "",
+          this.controller.host.dispatchEvent(
+            new CustomEvent("imageChanged", {
+              detail: {
+                src: res.data[0],
+              },
+              bubbles: true,
+              composed: true,
+            }),
           );
-          this.controller.host.imageViewerRef.value.src = `https://ik.imagekit.io/akdeniz/${file}?tr=w-${width},h-${height}`;
         }
       });
   };

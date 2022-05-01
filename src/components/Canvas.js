@@ -81,6 +81,7 @@ export class Canvas extends LitElement {
     model: { type: String },
     camera: { type: Object },
     _imageSize: { type: String, state: true },
+    _imageSrc: { type: String, state: true },
   };
 
   static #controlValues = Object.freeze([
@@ -103,6 +104,7 @@ export class Canvas extends LitElement {
     super();
     this.controller = new CanvasController(this);
     this._imageSize = "small";
+    this._imageSrc = "";
   }
 
   set control(value) {
@@ -124,12 +126,18 @@ export class Canvas extends LitElement {
   }
 
   async firstUpdated() {
+    this.addEventListener("imageChanged", this.#handleImageChange);
     this.controller.createScene();
     this.controller.createRenderer();
     this.controller.createCamera();
     await this.controller.loadMap();
     // Lets wait for a short time for better quality (for progrressive loading map)
     setTimeout(this.#onFileLoaded, 250);
+  }
+
+  disconnectedCallback() {
+    this.removeEventListener("imageChanged", this.#handleImageChange);
+    super.disconnectedCallback();
   }
 
   updated(changedProperties) {
@@ -202,13 +210,17 @@ export class Canvas extends LitElement {
       Canvas.#imageSizeValues[(index + 1) % Canvas.#imageSizeValues.length];
   }
 
+  #handleImageChange(event) {
+    this._imageSrc = event.detail.src;
+  }
+
   #renderImageViewer() {
     return html`
       <div
         class="imageViewer ${this._imageSize}"
         @click="${this.#handleImageResize}"
       >
-        <img src="" ${ref(this.imageViewerRef)} />
+        <rodo-imagekit src="${this._imageSrc}"></rodo-imagekit>
       </div>
     `;
   }
