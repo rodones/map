@@ -6,3 +6,4 @@ export * from "./ChangeControlButton";
 export * from "./ModalPortal";
 export * from "./Modal";
 export * from "./AboutModal";
+export * from "./ImageKit";

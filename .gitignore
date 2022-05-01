@@ -17,3 +17,4 @@ dist/
 public/static
 .DS_store
 files
+.history
