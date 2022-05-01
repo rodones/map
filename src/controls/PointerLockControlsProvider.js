@@ -1,6 +1,7 @@
 import { Vector3, Color, Raycaster } from "three";
 import { ControlProvider } from "../components/Canvas.controller";
 import PointerLockControls from "./PointerLockControls";
+import { withSkip, withThrotled } from "./PointerLockControlUtils";
 
 export default class PointerLockControlProvider extends ControlProvider {
   createControls() {
@@ -38,6 +39,8 @@ export default class PointerLockControlProvider extends ControlProvider {
       0,
       2,
     );
+
+    this.controls.addEventListener("change", this.#imageQueryHandler);
   }
 
   animate() {
@@ -202,4 +205,54 @@ export default class PointerLockControlProvider extends ControlProvider {
         break;
     }
   };
+
+  #imageQuery = async (position) => {
+    const { x, y, z } = position;
+    fetch(
+      `https://shmb.eu-west-3.elasticbeanstalk.com/images?x=${x}0&y=${y}&z=${z}&radius=9.0`,
+    )
+      .then((res) => res.json())
+      .then((res) => {
+        console.log(res.data);
+        if (res.data[0]) {
+          const url = res.data[0].replace(
+            "https://rodones-images2.fra1.digitaloceanspaces.com/https://rodones-images2.fra1.digitaloceanspaces.com/",
+            "https://rodones-images2.fra1.digitaloceanspaces.com/",
+          );
+          this.controller.host.imageViewerRef.value.src = url;
+        }
+      });
+  };
+
+  #imageQuerySkipCloseValues = (prevArgs, args) => {
+    const [prevPos] = prevArgs;
+    const [pos] = args;
+
+    console.log(
+      prevPos
+        ? Math.abs(prevPos.x - pos.x) +
+            Math.abs(prevPos.y - pos.y) +
+            Math.abs(prevPos.z - pos.z)
+        : -1000000,
+    );
+
+    return (
+      !!prevPos &&
+      Math.abs(prevPos.x - pos.x) +
+        Math.abs(prevPos.y - pos.y) +
+        Math.abs(prevPos.z - pos.z) <=
+        10
+    );
+  };
+
+  #imageQueryWithSkip = withSkip(
+    this.#imageQuery,
+    this.#imageQuerySkipCloseValues,
+  );
+
+  #imageQueryHandler = withThrotled(() => {
+    const position = this.controller.camera.position.clone();
+
+    return this.#imageQueryWithSkip(position);
+  }, 1000);
 }

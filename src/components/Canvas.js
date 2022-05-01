@@ -39,12 +39,48 @@ export class Canvas extends LitElement {
 
       color: whitesmoke;
     }
+
+    .imageViewer {
+      position: absolute;
+      bottom: 4px;
+      left: 4px;
+
+      background-color: #414952;
+      border: 1px solid #8699a6;
+      border-radius: 2px;
+
+      margin: 0;
+      padding: 0;
+
+      cursor: pointer;
+    }
+
+    .imageViewer img {
+      width: 100%;
+      height: 100%;
+    }
+
+    .imageViewer.small {
+      width: 150px;
+      height: 100px;
+    }
+
+    .imageViewer.medium {
+      width: 300px;
+      height: 200px;
+    }
+
+    .imageViewer.large {
+      width: 600px;
+      height: 400px;
+    }
   `;
 
   static properties = {
     control: { type: String },
     model: { type: String },
     camera: { type: Object },
+    _imageSize: { type: String, state: true },
   };
 
   static #controlValues = Object.freeze([
@@ -54,15 +90,19 @@ export class Canvas extends LitElement {
     "trackball",
   ]);
 
+  static #imageSizeValues = Object.freeze(["small", "medium", "large"]);
+
   canvasRef = createRef();
   blockerRef = createRef();
   instructionsRef = createRef();
+  imageViewerRef = createRef();
 
   #control;
 
   constructor() {
     super();
     this.controller = new CanvasController(this);
+    this._imageSize = "small";
   }
 
   set control(value) {
@@ -156,13 +196,31 @@ export class Canvas extends LitElement {
     </div>`;
   }
 
+  #handleImageResize() {
+    const index = Canvas.#imageSizeValues.indexOf(this._imageSize);
+    this._imageSize =
+      Canvas.#imageSizeValues[(index + 1) % Canvas.#imageSizeValues.length];
+  }
+
+  #renderImageViewer() {
+    return html`
+      <div
+        class="imageViewer ${this._imageSize}"
+        @click="${this.#handleImageResize}"
+      >
+        <img src="" ${ref(this.imageViewerRef)} />
+      </div>
+    `;
+  }
+
   #renderCanvas() {
     return html`<canvas ${ref(this.canvasRef)}></canvas>`;
   }
 
   render() {
     return html`
-      ${cache(this.control === "pointer-lock" ? this.#renderBlocker() : "")}
+      ${this.control === "pointer-lock" ? this.#renderBlocker() : ""}
+      ${cache(this.control === "pointer-lock" ? this.#renderImageViewer() : "")}
       ${cache(this.#renderCanvas())}
     `;
   }
