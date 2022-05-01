@@ -4,7 +4,7 @@
  */
 
 import { Matrix4, Raycaster } from "three";
-import { Euler, EventDispatcher, Vector3, MathUtils } from "three";
+import { Euler, EventDispatcher, Vector3 } from "three";
 
 export default class PointerLockControls extends EventDispatcher {
   constructor(camera, element, scene) {
@@ -35,44 +35,15 @@ export default class PointerLockControls extends EventDispatcher {
     this.right = new Vector3(); // Camera right Vector
     this.euler = new Euler(0, 0, 0, "YXZ"); // camera angle in euler format
 
+    this.distance = [5, 5]; // it is formed as (intended distance, distance between below face)
     this.raycaster = new Raycaster(
       this.camera.position,
       this.direction,
       0,
-      5,
+      this.distance[0],
     );
 
     this.connect();
-  }
-
-  move = (v) => {
-    this.camera.position.x += v.x * this.delta;
-    this.camera.position.y += v.y * this.delta * 2;
-    this.camera.position.z += v.z * this.delta;
-  };
-
-  #raycast() {
-    this.raycaster.ray.origin = this.camera.position.clone();
-    this.raycaster.ray.direction = this.velocity2.clone();
-    // this.raycaster.ray.origin.y -= 2; // insan gözü gibi olsun yeri aşşağı indiriyor bu
-    let k = this.raycaster.intersectObject(
-      this.scene.getObjectByName("MAP_START"),
-    );
-    this.raycaster.ray.direction = new Vector3(0, -1, 0);
-    k.push(...this.raycaster.intersectObject(
-      this.scene.getObjectByName("MAP_START"),
-    ));
-
-    const isadded = {};
-    const newk = [];
-
-    k.forEach(m => {
-      if (!isadded[`${m.face.normal.x},${m.face.normal.y},${m.face.normal.z}`]) {
-        isadded[`${m.face.normal.x},${m.face.normal.y},${m.face.normal.z}`] = true;
-        newk.push(m);
-      }
-    });
-    return newk;
   }
 
   animate() {
@@ -85,59 +56,120 @@ export default class PointerLockControls extends EventDispatcher {
     this.velocity2 = this.velocity.clone();
   }
 
-  calculateIntersectedVelocity(intersections) { // calculate intersected velocity
+  #raycast() {
+    this.raycaster.ray.origin = this.camera.position.clone();
+    this.raycaster.ray.direction = this.velocity2.clone();
+
+    let intersections = this.raycaster.intersectObject(
+      this.scene.getObjectByName("MAP_START"),
+    );
+
+    this.raycaster.ray.direction = new Vector3(0, -1, 0);
+    let belowIntersections = this.raycaster.intersectObject(
+      this.scene.getObjectByName("MAP_START"),
+    );
+
+    return this.unifyIntersections(intersections, belowIntersections);
+  }
+
+  move = (v) => {
+    this.camera.position.x += v.x * this.delta;
+    this.camera.position.y += this.calculateY(v);
+    this.camera.position.z += v.z * this.delta;
+  };
+
+  // calculate y component of final velocity
+  calculateY = (v) => {
+    if (this.distance[1] == 0) {
+      return v.y * this.delta * 2;
+    }
+
+    return this.distance[1] <= this.distance[0]
+      ? this.distance[0] - this.distance[1] - 0.1
+      : 0;
+  };
+
+  // Connects intersections from two raycast.
+  unifyIntersections(inter, belowInter) {
+    inter.push(...belowInter);
+
+    this.distance[1] = belowInter.length ? belowInter[0].distance : 0;
+
+    const isadded = {};
+    const unifiedIntersections = [];
+
+    inter.forEach((int) => {
+      let face_id = `${int.face.normal.x},${int.face.normal.y},${int.face.normal.z}`;
+
+      if (!isadded[face_id]) {
+        isadded[face_id] = true;
+        unifiedIntersections.push(int);
+      }
+    });
+    return unifiedIntersections;
+  }
+
+  // calculate intersected velocity
+  calculateIntersectedVelocity(intersections) {
     let blockedVelocity = new Vector3(0, 0, 0);
 
     intersections.forEach((inter) => {
       blockedVelocity.add(inter.face.normal);
     });
-    
-    blockedVelocity.y = Math.max(blockedVelocity.y, 1)
 
-    let k = this.calculateStoppedVelocity(this.velocity.clone(), blockedVelocity.clone().clampScalar(-1, 1));
+    let velo = this.calculateStoppedVelocity(
+      this.velocity.clone(),
+      blockedVelocity.clone(),
+    );
 
-    return k
+    return velo;
   }
 
+  // calculate velocity with intersections
   calculateStoppedVelocity(velo, blockedVelo) {
-    return new Vector3(this.blockVelocity(velo.x, blockedVelo.x),
-      this.blockVelocity(velo.y, blockedVelo.y),
-      this.blockVelocity(velo.z, blockedVelo.z));
+    let yComp = blockedVelo.y > 0.2 ? 0 : velo.y - blockedVelo.y;
+
+    return new Vector3(
+      this.blockVelocity(velo.x, blockedVelo.x),
+      yComp,
+      this.blockVelocity(velo.z, blockedVelo.z),
+    );
   }
 
   blockVelocity(value, blockValue) {
-    if (Math.abs(blockValue) > Math.abs(value)) return 0;
-
-    return value + blockValue
+    return Math.abs(blockValue) > Math.abs(value) ? 0 : value + blockValue;
   }
 
-  calculateVelocity() { // calculate world velocity 
+  // calculate world velocity
+  calculateWorldVelocity() {
     this.calculateRelativeVelocity();
     this.calculateRightVector();
 
-    let dirVector = this.direction.clone()
-    let rightVector = this.right.clone()
-  
-    dirVector.multiplyScalar(-this.relativeVelocity.z).add(rightVector.multiplyScalar(this.relativeVelocity.x)).clampScalar(-1, 1)
+    let dirVector = this.direction.clone();
+    let rightVector = this.right.clone();
+
+    dirVector
+      .multiplyScalar(-this.relativeVelocity.z)
+      .add(rightVector.multiplyScalar(this.relativeVelocity.x));
 
     this.velocity.x = dirVector.x;
     this.velocity.z = dirVector.z;
   }
 
+  // calculate relative velocity gathered from wasd keys
   calculateRelativeVelocity() {
-    // calculate relative velocity gathered from wasd keys
     this.relativeVelocity.x = this.keys[3] - this.keys[1]; // a - d
     this.relativeVelocity.z = this.keys[2] - this.keys[0]; // w - s
   }
 
-  calculateNewDirection() {
-    // calculate world direction
+  // calculate world direction
+  calculateWorldDirecton() {
     this.calculateUpVector();
     this.camera.getWorldDirection(this.direction);
   }
 
+  // calculates camera up vector
   calculateUpVector() {
-    // calculates camera up vector
     var rotationMatrix = new Matrix4().extractRotation(this.camera.matrixWorld);
     this.camera.up = new Vector3(0, 1, 0)
       .applyMatrix4(rotationMatrix)
@@ -145,8 +177,8 @@ export default class PointerLockControls extends EventDispatcher {
     this.up = this.camera.up;
   }
 
+  // calculate camera right vector
   calculateRightVector() {
-    // calculate camera right vector
     this.right.crossVectors(this.direction, this.up);
   }
 
@@ -170,48 +202,63 @@ export default class PointerLockControls extends EventDispatcher {
 
     this.camera.quaternion.setFromEuler(this.euler);
 
-    this.calculateNewDirection();
+    this.calculateWorldDirecton();
+    this.calculateWorldVelocity();
     this.changed();
   };
 
   onKeyDown = (event) => {
     event.preventDefault();
 
+    let flag = false;
     switch (event.code) {
       case "KeyW":
+        flag = this.keys[0] == 0;
         this.keys[0] = 1;
         break;
       case "KeyA":
+        flag = this.keys[1] == 0;
         this.keys[1] = 1;
         break;
       case "KeyS":
+        flag = this.keys[2] == 0;
         this.keys[2] = 1;
         break;
       case "KeyD":
+        flag = this.keys[3] == 0;
         this.keys[3] = 1;
         break;
     }
-    this.calculateVelocity();
+
+    if (flag) this.calculateWorldVelocity();
   };
 
   onKeyUp = (event) => {
     event.preventDefault();
 
+    let flag = false;
     switch (event.code) {
       case "KeyW":
+        flag = this.keys[0] == 1;
         this.keys[0] = 0;
         break;
       case "KeyA":
+        flag = this.keys[0] == 1;
         this.keys[1] = 0;
         break;
       case "KeyS":
+        flag = this.keys[0] == 1;
         this.keys[2] = 0;
         break;
       case "KeyD":
+        flag = this.keys[0] == 1;
         this.keys[3] = 0;
         break;
+      default:
+        flag = false;
     }
-    this.calculateVelocity();
+
+    if (flag) this.calculateWorldVelocity();
   };
 
   dispose = () => {
