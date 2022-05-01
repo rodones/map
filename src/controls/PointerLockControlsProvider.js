@@ -208,18 +208,21 @@ export default class PointerLockControlProvider extends ControlProvider {
 
   #imageQuery = async (position) => {
     const { x, y, z } = position;
+
     fetch(
       `https://shmb.eu-west-3.elasticbeanstalk.com/images?x=${x}0&y=${y}&z=${z}&radius=9.0`,
     )
       .then((res) => res.json())
       .then((res) => {
         console.log(res.data);
+
         if (res.data[0]) {
-          const url = res.data[0].replace(
-            "https://rodones-images2.fra1.digitaloceanspaces.com/https://rodones-images2.fra1.digitaloceanspaces.com/",
+          const { width, height } = this.controller.host.imageViewerRef.value;
+          const file = res.data[0].replaceAll(
             "https://rodones-images2.fra1.digitaloceanspaces.com/",
+            "",
           );
-          this.controller.host.imageViewerRef.value.src = url;
+          this.controller.host.imageViewerRef.value.src = `https://ik.imagekit.io/akdeniz/${file}?tr=w-${width},h-${height}`;
         }
       });
   };
