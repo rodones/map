@@ -1,6 +1,6 @@
 import { ControlProvider } from "../components/Canvas.controller";
 import PointerLockControls from "./PointerLockControls";
-import { withSkip, withThrottled } from "./PointerLockControlUtils";
+import { withSkip } from "./PointerLockControlUtils";
 
 export default class PointerLockControlProvider extends ControlProvider {
   createControls() {
@@ -86,8 +86,6 @@ export default class PointerLockControlProvider extends ControlProvider {
     )
       .then((res) => res.json())
       .then((res) => {
-        console.log(res.data);
-
         if (res.data[0]) {
           this.controller.host.dispatchEvent(
             new CustomEvent("imageChanged", {
@@ -106,14 +104,6 @@ export default class PointerLockControlProvider extends ControlProvider {
     const [prevPos] = prevArgs;
     const [pos] = args;
 
-    console.log(
-      prevPos
-        ? Math.abs(prevPos.x - pos.x) +
-            Math.abs(prevPos.y - pos.y) +
-            Math.abs(prevPos.z - pos.z)
-        : -1000000,
-    );
-
     return (
       !!prevPos &&
       Math.abs(prevPos.x - pos.x) +
@@ -128,9 +118,9 @@ export default class PointerLockControlProvider extends ControlProvider {
     this.#imageQuerySkipCloseValues,
   );
 
-  #imageQueryHandler = withThrottled(() => {
+  #imageQueryHandler = () => {
     const position = this.controller.camera.position.clone();
 
     return this.#imageQueryWithSkip(position);
-  }, 1000);
+  };
 }
