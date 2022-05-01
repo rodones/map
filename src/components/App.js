@@ -59,7 +59,7 @@ export class App extends LitElement {
       </rodo-rectangular-layout>
 
       <rodo-rectangular-layout position="right" align="left">
-        <rodo-button title="About" @click="${this.#warp}"> W </rodo-button>
+        <rodo-button title="Warp" @click="${this.#warp}"> W </rodo-button>
       </rodo-rectangular-layout>
 
       <rodo-rectangular-layout position="bottom" align="right">
