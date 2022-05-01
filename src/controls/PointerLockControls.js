@@ -27,8 +27,8 @@ export default class PointerLockControls extends EventDispatcher {
 
     this.keys = [0, 0, 0, 0]; // keys pressed, w a s d
 
-    this.velocity = new Vector3(0, -1, 0); // Velocity to world
-    this.velocity2 = new Vector3(0, -1, 0);
+    this.worldVelocity = new Vector3(0, -1, 0); // Velocity to world
+    this.velocity = new Vector3(0, -1, 0); // Velocity to world without intersected by faces
     this.relativeVelocity = new Vector3(0, 0, 0); // This indicates of camera's relative w a s d walk. a-d = x direction, w-s = z direction.
 
     this.direction = new Vector3(0, 0, -1); // Camera direction vector
@@ -51,15 +51,15 @@ export default class PointerLockControls extends EventDispatcher {
     const intersections = this.#raycast();
 
     if (intersections.length) {
-      this.velocity2 = this.calculateIntersectedVelocity(intersections);
+      this.worldVelocity = this.calculateIntersectedVelocity(intersections);
     }
-    this.move(this.velocity2);
-    this.velocity2 = this.velocity;
+    this.move(this.worldVelocity);
+    this.worldVelocity = this.velocity;
   }
 
   #raycast() {
     this.raycaster.ray.origin = this.camera.position;
-    this.raycaster.ray.direction = this.velocity2;
+    this.raycaster.ray.direction = this.worldVelocity;
 
     let intersections = this.raycaster.intersectObject(
       this.scene.getObjectByName("MAP_START"),
@@ -79,7 +79,7 @@ export default class PointerLockControls extends EventDispatcher {
     this.camera.position.z += v.z * this.delta;
   };
 
-  // calculate y component of final velocity
+  // Calculate y component of final velocity
   calculateY = (v) => {
     if (this.belowDistance == 0) {
       return v.y * this.delta * 2;
@@ -90,7 +90,7 @@ export default class PointerLockControls extends EventDispatcher {
       : 0;
   };
 
-  // Connects intersections from two raycast.
+  // Merge intersections from two raycast, remove duplicate intersections.
   unifyIntersections(inter, belowInter) {
     inter.push(...belowInter);
 
@@ -110,7 +110,7 @@ export default class PointerLockControls extends EventDispatcher {
     return unifiedIntersections;
   }
 
-  // calculate intersected velocity
+  // Calculate the intersected velocity with World Velocity and intersections
   calculateIntersectedVelocity(intersections) {
     let blockedVelocity = new Vector3(0, 0, 0);
 
@@ -118,19 +118,13 @@ export default class PointerLockControls extends EventDispatcher {
       blockedVelocity.add(inter.face.normal);
     });
 
-    let velo = this.calculateStoppedVelocity(this.velocity, blockedVelocity);
-
-    return velo;
-  }
-
-  // calculate velocity with intersections
-  calculateStoppedVelocity(velo, blockedVelo) {
-    let yComp = blockedVelo.y > 0.2 ? 0 : velo.y - blockedVelo.y;
+    let yComp =
+      blockedVelocity.y > 0.2 ? 0 : this.velocity.y - blockedVelocity.y;
 
     return new Vector3(
-      this.blockVelocity(velo.x, blockedVelo.x),
+      this.blockVelocity(this.velocity.x, blockedVelocity.x),
       yComp,
-      this.blockVelocity(velo.z, blockedVelo.z),
+      this.blockVelocity(this.velocity.z, blockedVelocity.z),
     );
   }
 
@@ -138,7 +132,7 @@ export default class PointerLockControls extends EventDispatcher {
     return Math.abs(blockValue) > Math.abs(value) ? 0 : value + blockValue;
   }
 
-  // calculate world velocity
+  // Calculate World Velocity
   calculateWorldVelocity() {
     this.calculateRelativeVelocity();
     this.calculateRightVector();
@@ -154,19 +148,19 @@ export default class PointerLockControls extends EventDispatcher {
     this.velocity.z = dirVector.z;
   }
 
-  // calculate relative velocity gathered from wasd keys
+  // Calculate Relative Velocity gathered from wasd keys
   calculateRelativeVelocity() {
     this.relativeVelocity.x = this.keys[3] - this.keys[1]; // a - d
     this.relativeVelocity.z = this.keys[2] - this.keys[0]; // w - s
   }
 
-  // calculate world direction
+  // Calculate World direction
   calculateWorldDirecton() {
     this.calculateUpVector();
     this.camera.getWorldDirection(this.direction);
   }
 
-  // calculates camera up vector
+  // Calculate Camera up vector
   calculateUpVector() {
     var rotationMatrix = new Matrix4().extractRotation(this.camera.matrixWorld);
     this.camera.up = new Vector3(0, 1, 0)
@@ -175,7 +169,7 @@ export default class PointerLockControls extends EventDispatcher {
     this.up = this.camera.up;
   }
 
-  // calculate camera right vector
+  // Calculate Camera right vector
   calculateRightVector() {
     this.right.crossVectors(this.direction, this.up);
   }
