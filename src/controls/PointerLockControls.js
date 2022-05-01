@@ -67,14 +67,10 @@ export default class PointerLockControls extends EventDispatcher {
     this.raycaster.ray.origin = this.camera.position;
     this.raycaster.ray.direction = this.finalVelocity;
 
-    let inter = this.raycaster.intersectObject(
-      this.scene.getObjectByName("MAP_START"),
-    );
+    let inter = this.raycaster.intersectObject(this.scene, true);
 
     this.raycaster.ray.direction = new Vector3(0, -1, 0);
-    let belowInter = this.raycaster.intersectObject(
-      this.scene.getObjectByName("MAP_START"),
-    );
+    let belowInter = this.raycaster.intersectObject(this.scene, true);
 
     return this.unifyIntersections(inter, belowInter);
   }
@@ -234,7 +230,7 @@ export default class PointerLockControls extends EventDispatcher {
         this.keys[3] = 1;
         break;
       case "ShiftLeft":
-        this.sprint = 3;
+        this.sprint = 30;
         break;
       case "Space":
         if (this.canJump) {

@@ -18,8 +18,6 @@ export default class PointerLockControlProvider extends ControlProvider {
   }
 
   animate() {
-    this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
-
     if (!this.controls.isLocked) {
       this.controller.renderer.render(
         this.controller.scene,
@@ -38,10 +36,6 @@ export default class PointerLockControlProvider extends ControlProvider {
   }
 
   destroy() {
-    console.log("PointerLockControlExtender destroyControls");
-
-    if (this.animationRequestId) cancelAnimationFrame(this.animationRequestId);
-
     this.#removeKeyboardListeners();
 
     if (this.controls) {

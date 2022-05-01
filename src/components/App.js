@@ -23,7 +23,7 @@ export class App extends LitElement {
   constructor() {
     super();
     this._showAbout = false;
-    this._camera = { position: [20, -10, 20] };
+    this._camera = { position: [-1000, 100, -60] };
   }
 
   #changeMode(event) {
@@ -40,11 +40,12 @@ export class App extends LitElement {
 
   #warp() {
     const position = window
-      .prompt("Position", "500,-10,20")
+      .prompt("Position", this._camera.position.join(","))
       .split(",")
       .filter((x) => x !== "" && !Number.isNaN(x))
       .concat([0, 0, 0])
-      .slice(0, 3);
+      .slice(0, 3)
+      .map(Number.parseFloat);
 
     this._camera = { position };
     this.canvasRef.value.requestUpdate("camera", null);

@@ -131,6 +131,7 @@ export class Canvas extends LitElement {
     this.controller.createRenderer();
     this.controller.createCamera();
     await this.controller.loadMap();
+
     // Lets wait for a short time for better quality (for progrressive loading map)
     setTimeout(this.#onFileLoaded, 250);
   }

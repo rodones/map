@@ -20,8 +20,6 @@ export default class TrackballControlProvider extends ControlProvider {
   }
 
   animate() {
-    this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
-
     this.controls.update();
     if (this.reDraw) {
       this.controller.renderer.render(
@@ -33,9 +31,6 @@ export default class TrackballControlProvider extends ControlProvider {
   }
 
   destroy() {
-    console.log("Trackball destroyControls");
-    if (this.animationRequestId) cancelAnimationFrame(this.animationRequestId);
-
     this.controls?.dispose();
   }
 }

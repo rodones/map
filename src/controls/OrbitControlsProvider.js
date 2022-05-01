@@ -16,8 +16,6 @@ export default class OrbitControlProvider extends ControlProvider {
   }
 
   animate() {
-    this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
-
     this.controls.update();
     if (this.reDraw) {
       this.controller.renderer.render(
@@ -29,9 +27,6 @@ export default class OrbitControlProvider extends ControlProvider {
   }
 
   destroy() {
-    console.log("OrbitControlExtender destroyControls");
-    if (this.animationRequestId) cancelAnimationFrame(this.animationRequestId);
-
     this.controls?.dispose();
   }
 }
