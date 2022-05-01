@@ -1,7 +1,7 @@
 import { Vector3, Color, Raycaster } from "three";
 import { ControlProvider } from "../components/Canvas.controller";
 import PointerLockControls from "./PointerLockControls";
-import { withSkip, withThrotled } from "./PointerLockControlUtils";
+import { withSkip, withThrottled } from "./PointerLockControlUtils";
 
 export default class PointerLockControlProvider extends ControlProvider {
   createControls() {
@@ -250,7 +250,7 @@ export default class PointerLockControlProvider extends ControlProvider {
     this.#imageQuerySkipCloseValues,
   );
 
-  #imageQueryHandler = withThrotled(() => {
+  #imageQueryHandler = withThrottled(() => {
     const position = this.controller.camera.position.clone();
 
     return this.#imageQueryWithSkip(position);
