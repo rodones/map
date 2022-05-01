@@ -23,7 +23,7 @@ export class App extends LitElement {
   constructor() {
     super();
     this._showAbout = false;
-    this._camera = { position: [-1000, 100, -60] };
+    this._camera = { position: [20, -10, 20] };
   }
 
   #changeMode(event) {
