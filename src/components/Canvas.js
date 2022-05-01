@@ -47,16 +47,16 @@ export class Canvas extends LitElement {
     camera: { type: Object },
   };
 
-  canvasRef = createRef();
-  blockerRef = createRef();
-  instructionsRef = createRef();
-
   static #controlValues = Object.freeze([
     "pointer-lock",
     "map",
     "orbit",
     "trackball",
   ]);
+
+  canvasRef = createRef();
+  blockerRef = createRef();
+  instructionsRef = createRef();
 
   #control;
 
