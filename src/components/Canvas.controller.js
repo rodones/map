@@ -10,6 +10,7 @@ import {
   AxesHelper,
   MeshBasicMaterial,
   Matrix4,
+  CubeTextureLoader,
 } from "three";
 import Stats from "stats.js";
 
@@ -57,8 +58,10 @@ export class CanvasController {
 
   createScene() {
     this.scene = new Scene();
+
     this.scene.background = new Color(0x0073b6);
     this.scene.fog = new Fog(0x050505, 2000, 3500);
+
     this.scene.add(new AmbientLight(0x444444));
 
     const light1 = new DirectionalLight(0xffffff, 1.0);
@@ -70,6 +73,18 @@ export class CanvasController {
     this.scene.add(light2);
 
     this.scene.add(new AxesHelper(5));
+
+    const root = "skyboxes";
+    const name = "bluecloud";
+    const extension = "jpg";
+    this.scene.background = new CubeTextureLoader().load([
+      `${root}/${name}/ft.${extension}`,
+      `${root}/${name}/bk.${extension}`,
+      `${root}/${name}/up.${extension}`,
+      `${root}/${name}/dn.${extension}`,
+      `${root}/${name}/rt.${extension}`,
+      `${root}/${name}/lf.${extension}`,
+    ]);
   }
 
   createRenderer() {
