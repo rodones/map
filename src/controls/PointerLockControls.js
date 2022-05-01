@@ -23,6 +23,7 @@ export default class PointerLockControls extends EventDispatcher {
     this.minPolarAngle = 0;
     this.maxPolarAngle = Math.PI;
     this.delta = 0.25;
+    this.distance = 5;
 
     this.keys = [0, 0, 0, 0]; // keys pressed, w a s d
 
@@ -34,13 +35,13 @@ export default class PointerLockControls extends EventDispatcher {
     this.up = this.camera.up; // Camera up Vector
     this.right = new Vector3(); // Camera right Vector
     this.euler = new Euler(0, 0, 0, "YXZ"); // camera angle in euler format
+    this.belowDistance = this.distance; // it is formed as (intended distance, distance between below face)
 
-    this.distance = [5, 5]; // it is formed as (intended distance, distance between below face)
     this.raycaster = new Raycaster(
       this.camera.position,
       this.direction,
       0,
-      this.distance[0],
+      this.distance,
     );
 
     this.connect();
@@ -50,15 +51,15 @@ export default class PointerLockControls extends EventDispatcher {
     const intersections = this.#raycast();
 
     if (intersections.length) {
-      this.velocity2 = this.calculateIntersectedVelocity(intersections).clone();
+      this.velocity2 = this.calculateIntersectedVelocity(intersections);
     }
     this.move(this.velocity2);
-    this.velocity2 = this.velocity.clone();
+    this.velocity2 = this.velocity;
   }
 
   #raycast() {
-    this.raycaster.ray.origin = this.camera.position.clone();
-    this.raycaster.ray.direction = this.velocity2.clone();
+    this.raycaster.ray.origin = this.camera.position;
+    this.raycaster.ray.direction = this.velocity2;
 
     let intersections = this.raycaster.intersectObject(
       this.scene.getObjectByName("MAP_START"),
@@ -80,12 +81,12 @@ export default class PointerLockControls extends EventDispatcher {
 
   // calculate y component of final velocity
   calculateY = (v) => {
-    if (this.distance[1] == 0) {
+    if (this.belowDistance == 0) {
       return v.y * this.delta * 2;
     }
 
-    return this.distance[1] <= this.distance[0]
-      ? this.distance[0] - this.distance[1] - 0.1
+    return this.belowDistance <= this.distance
+      ? this.distance - this.belowDistance - 0.1
       : 0;
   };
 
@@ -93,7 +94,7 @@ export default class PointerLockControls extends EventDispatcher {
   unifyIntersections(inter, belowInter) {
     inter.push(...belowInter);
 
-    this.distance[1] = belowInter.length ? belowInter[0].distance : 0;
+    this.belowDistance = belowInter.length ? belowInter[0].distance : 0;
 
     const isadded = {};
     const unifiedIntersections = [];
@@ -117,10 +118,7 @@ export default class PointerLockControls extends EventDispatcher {
       blockedVelocity.add(inter.face.normal);
     });
 
-    let velo = this.calculateStoppedVelocity(
-      this.velocity.clone(),
-      blockedVelocity.clone(),
-    );
+    let velo = this.calculateStoppedVelocity(this.velocity, blockedVelocity);
 
     return velo;
   }
