@@ -76,7 +76,7 @@ export default class PointerLockControlProvider extends ControlProvider {
     const { x, y, z } = position;
 
     fetch(
-      `https://shmb.eu-west-3.elasticbeanstalk.com/images?x=${x}0&y=${y}&z=${z}&radius=9.0`,
+      `https://imba.eu-central-1.elasticbeanstalk.com/images?x=${x}0&y=${y}&z=${z}&radius=9.0`,
     )
       .then((res) => res.json())
       .then((res) => {
