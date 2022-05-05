@@ -1,5 +1,6 @@
 import { LitElement, html, css } from "lit";
 import { ref, createRef } from "lit/directives/ref.js";
+import { when } from "lit/directives/when.js";
 import info from "../icons/info";
 
 export class App extends LitElement {
@@ -7,6 +8,7 @@ export class App extends LitElement {
     control: { type: String },
     model: { type: String },
     _showAbout: { state: true },
+    _warp: { state: true },
     _camera: { state: true },
   };
 
@@ -23,7 +25,24 @@ export class App extends LitElement {
   constructor() {
     super();
     this._showAbout = false;
+    this._warp = {
+      shouldRender: false,
+      isModalOpened: false,
+      places: [],
+    };
     this._camera = { position: [20, -10, 20] };
+  }
+
+  connectedCallback() {
+    super.connectedCallback();
+    this.addEventListener("warp", this.#onWarp);
+    this.addEventListener("enablePlaces", this.#handleEnablePlaces);
+  }
+
+  disconnectedCallback() {
+    this.removeEventListener("warp", this.#handleEnablePlaces);
+    this.removeEventListener("warp", this.#onWarp);
+    super.disconnectedCallback();
   }
 
   #changeMode(event) {
@@ -38,17 +57,29 @@ export class App extends LitElement {
     this._showAbout = false;
   }
 
-  #warp() {
-    const position = window
-      .prompt("Position", this._camera.position.join(","))
-      .split(",")
-      .filter((x) => x !== "" && !Number.isNaN(x))
-      .concat([0, 0, 0])
-      .slice(0, 3)
-      .map(Number.parseFloat);
+  #showWarp() {
+    this._warp = { ...this._warp, isModalOpened: true };
+  }
+
+  #hideWarp() {
+    this._warp = { ...this._warp, isModalOpened: false };
+  }
+
+  #onWarp(event) {
+    const { position } = event.detail;
 
     this._camera = { position };
     this.canvasRef.value.requestUpdate("camera", null);
+  }
+
+  #handleEnablePlaces(event) {
+    const { places } = event.detail;
+
+    this._warp = {
+      ...this._warp,
+      places,
+      shouldRender: true,
+    };
   }
 
   #renderLayout() {
@@ -59,9 +90,12 @@ export class App extends LitElement {
         </rodo-button>
       </rodo-rectangular-layout>
 
-      <rodo-rectangular-layout position="right" align="left">
-        <rodo-button title="Warp" @click="${this.#warp}"> W </rodo-button>
-      </rodo-rectangular-layout>
+      ${when(
+        this._warp.shouldRender,
+        () => html`<rodo-rectangular-layout position="right" align="left">
+          <rodo-button title="Warp" @click="${this.#showWarp}"> W </rodo-button>
+        </rodo-rectangular-layout>`,
+      )}
 
       <rodo-rectangular-layout position="bottom" align="right">
         <rodo-change-control-button
@@ -91,12 +125,20 @@ export class App extends LitElement {
     ></rodo-about-modal>`;
   }
 
+  #renderWarpModal() {
+    return html`<rodo-warp-modal
+      places="${JSON.stringify(this._warp.places)}"
+      @close=${this.#hideWarp}
+    ></rodo-warp-modal>`;
+  }
+
   render() {
     return [
       this.#renderModalProvider(),
       this.#renderLayout(),
       this.#renderCanvas(),
       this._showAbout && this.#renderAboutModal(),
+      this._warp.isModalOpened && this.#renderWarpModal(),
     ];
   }
 }

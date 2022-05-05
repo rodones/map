@@ -9,8 +9,8 @@ export class Button extends LitElement {
 
   static styles = css`
     button {
-      height: 40px;
-      min-width: 40px;
+      height: var(--rodo-button-height, 40px);
+      min-width: var(--rodo-button-min-width, 40px);
       padding: 0px 8px;
       border: 1px solid var(--rodo-button-border-color, #8699a6);
       border-radius: var(--rodo-button-border-radius, 2px);

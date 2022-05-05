@@ -153,6 +153,18 @@ export class CanvasController {
   async #loadJsonFile(file) {
     const data = await fetch(file).then((res) => res.json());
 
+    if (data.places) {
+      this.host.dispatchEvent(
+        new CustomEvent("enablePlaces", {
+          detail: {
+            places: data.places,
+          },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    }
+
     return Promise.all(
       data.objects.map((object) => {
         const { file, ...settings } = object;
