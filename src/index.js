@@ -1,18 +1,20 @@
 import { html, render } from "lit-html";
 import "./components";
 
-window.onbeforeunload = function (e) {
-  const returnValue = "Do you want to exit?";
-  const event = e || window.event;
+if (process.env.NODE_ENV != "development") {
+  window.onbeforeunload = function (e) {
+    const returnValue = "Do you want to exit?";
+    const event = e || window.event;
 
-  // For IE and Firefox
-  if (event) {
-    event.returnValue = returnValue;
-  }
+    // For IE and Firefox
+    if (event) {
+      event.returnValue = returnValue;
+    }
 
-  // For Safari
-  return returnValue;
-};
+    // For Safari
+    return returnValue;
+  };
+}
 
 window.onload = () => {
   const modelBases = {
