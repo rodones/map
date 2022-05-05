@@ -80,6 +80,7 @@ export class Canvas extends LitElement {
     control: { type: String },
     model: { type: String },
     camera: { type: Object },
+    stats: { type: Boolean },
     _imageSize: { type: String, state: true },
     _imageSrc: { type: String, state: true },
   };
@@ -151,6 +152,10 @@ export class Canvas extends LitElement {
 
     if (changedProperties.has("camera")) {
       this.controller.updateCamera(this.camera);
+    }
+
+    if (changedProperties.has("stats")) {
+      this.controller.toggleStats();
     }
   }
 

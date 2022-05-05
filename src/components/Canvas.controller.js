@@ -38,11 +38,6 @@ export class CanvasController {
     this.controlProvider.setController(this);
 
     host.addController(this);
-
-    this.stats = new Stats();
-    this.stats.showPanel(0);
-    this.stats.dom.style.top = "35px";
-    document.body.appendChild(this.stats.dom);
   }
 
   /**
@@ -99,6 +94,17 @@ export class CanvasController {
       this.canvas.offsetHeight,
       false,
     );
+
+    this.stats = new Stats();
+    this.stats.showPanel(0);
+    this.stats.dom.id = "stats";
+    this.stats.dom.style.top = "35px";
+    document.body.appendChild(this.stats.dom);
+    this.toggleStats();
+  }
+
+  toggleStats() {
+    this.stats.dom.style.display = this.host.stats ? "block" : "none";
   }
 
   createCamera() {
@@ -267,9 +273,9 @@ export class CanvasController {
   }
 
   animate() {
-    this.stats.begin();
+    this.stats?.begin();
     this.controlProvider.animate();
-    this.stats.end();
+    this.stats?.end();
     this.animationRequestId = requestAnimationFrame(this.animate.bind(this));
   }
 

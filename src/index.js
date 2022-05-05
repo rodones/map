@@ -30,6 +30,7 @@ window.onload = () => {
 
   const control = searchParams.get("control") ?? "pointer-lock";
   const model = modelBase + modelName;
+  const stats = searchParams.get("stats") === "true";
 
   const onMapLoaded = () => {
     document.getElementById("rodo-loading").classList.add("hidden");
@@ -40,6 +41,7 @@ window.onload = () => {
       @mapLoaded="${onMapLoaded}"
       control="${control}"
       model="${model}"
+      ?stats="${stats}"
     ></rodo-app>`,
     document.getElementById("rodo-root"),
   );

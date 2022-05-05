@@ -7,6 +7,7 @@ export class App extends LitElement {
   static properties = {
     control: { type: String },
     model: { type: String },
+    stats: { type: Boolean },
     _showAbout: { state: true },
     _warp: { state: true },
     _camera: { state: true },
@@ -82,6 +83,10 @@ export class App extends LitElement {
     };
   }
 
+  #toggleStats() {
+    this.stats = !this.stats;
+  }
+
   #renderLayout() {
     return html`
       <rodo-rectangular-layout position="right" align="right">
@@ -93,6 +98,9 @@ export class App extends LitElement {
             </rodo-button>
           `,
         )}
+        <rodo-button title="FPS Counter" @click="${this.#toggleStats}">
+          F
+        </rodo-button>
         <rodo-button title="About" @click="${this.#showAbout}">
           ${info}
         </rodo-button>
@@ -112,6 +120,7 @@ export class App extends LitElement {
       control="${this.control}"
       model="${this.model}"
       camera="${JSON.stringify(this._camera)}"
+      ?stats="${this.stats}"
       ${ref(this.canvasRef)}
     ></rodo-canvas>`;
   }
