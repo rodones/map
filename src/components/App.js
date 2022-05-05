@@ -85,17 +85,18 @@ export class App extends LitElement {
   #renderLayout() {
     return html`
       <rodo-rectangular-layout position="right" align="right">
+        ${when(
+          this._warp.shouldRender,
+          () => html`
+            <rodo-button title="Places" @click="${this.#showWarp}">
+              P
+            </rodo-button>
+          `,
+        )}
         <rodo-button title="About" @click="${this.#showAbout}">
           ${info}
         </rodo-button>
       </rodo-rectangular-layout>
-
-      ${when(
-        this._warp.shouldRender,
-        () => html`<rodo-rectangular-layout position="right" align="left">
-          <rodo-button title="Warp" @click="${this.#showWarp}"> W </rodo-button>
-        </rodo-rectangular-layout>`,
-      )}
 
       <rodo-rectangular-layout position="bottom" align="right">
         <rodo-change-control-button
