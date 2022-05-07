@@ -40,6 +40,23 @@ export class Canvas extends LitElement {
       color: whitesmoke;
     }
 
+    .keys tr {
+      height: 24px;
+    }
+
+    .keys td:nth-child(2n + 1) {
+      text-align: left;
+      min-width: 90px;
+    }
+
+    .key {
+      background-color: #414952;
+      border: 1px solid black;
+      border-radius: 4px;
+      padding: 1px 2px;
+      margin: 1px;
+    }
+
     .imageViewer {
       position: absolute;
       bottom: 4px;
@@ -200,12 +217,30 @@ export class Canvas extends LitElement {
   #renderBlocker() {
     return html`<div class="blocker" ${ref(this.blockerRef)}>
       <div class="instructions" ${ref(this.instructionsRef)}>
-        <p style="font-size:36px">Click to start</p>
-        <p>
-          Move: WASD<br />
-          Jump: SPACE<br />
-          Look: MOUSE
-        </p>
+        <div style="font-size:36px">Click to start</div>
+        <table class="keys">
+          <tbody>
+            <tr>
+              <td>Move</td>
+              <td>
+                <span class="key">W</span><span class="key">A</span
+                ><span class="key">S</span><span class="key">D</span>
+              </td>
+            </div>
+            <tr>
+              <td>Jump</td>
+              <td><span class="key">SPACE</span></td>
+            </tr>
+            <tr>
+              <td>Look</td>
+              <td><span class="key">MOUSE</span></td>
+            </tr>
+            <tr>
+              <td>Exit</td>
+              <td><span class="key">M</span></td>
+            </tr>
+          </tbody>
+        </table>
       </div>
     </div>`;
   }

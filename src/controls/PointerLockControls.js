@@ -265,6 +265,9 @@ export default class PointerLockControls extends EventDispatcher {
         flag = this.keys[3] == 1;
         this.keys[3] = 0;
         break;
+      case "KeyM":
+        this.unlock();
+        break;
       case "ShiftLeft":
         this.sprint = 1;
         break;
