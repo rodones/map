@@ -173,7 +173,6 @@ export default class TrackballControls extends EventDispatcher {
     if (this.enabled === false) return;
 
     window.removeEventListener("keydown", this.onKeyDown);
-    console.log(this._keyState, event.code);
 
     if (this._keyState !== TrackballState.NONE) {
       return;
@@ -187,8 +186,6 @@ export default class TrackballControls extends EventDispatcher {
     } else if (event.code === this.keys[TrackballState.PAN] && !this.noPan) {
       this._keyState = TrackballState.PAN;
     }
-
-    console.log(this._keyState, event.code);
   };
 
   onKeyUp = (event) => {
