@@ -1,3 +1,4 @@
+import { html } from "lit";
 import {
   AmbientLight,
   DirectionalLight,
@@ -283,12 +284,8 @@ export class CanvasController {
     return this.host.canvasRef.value;
   }
 
-  get blocker() {
-    return this.host.blockerRef.value;
-  }
-
-  get instructions() {
-    return this.host.instructionsRef.value;
+  renderStaticContent() {
+    return this.controlProvider.renderStaticContent();
   }
 }
 
@@ -311,4 +308,8 @@ export class ControlProvider {
   destroy() {}
 
   update() {}
+
+  renderStaticContent() {
+    return html``;
+  }
 }

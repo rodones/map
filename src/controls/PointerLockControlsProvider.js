@@ -1,8 +1,21 @@
+import { html } from "lit";
 import { ControlProvider } from "../components/Canvas.controller";
 import PointerLockControls from "./PointerLockControls";
 import { withSkip } from "./PointerLockControlUtils";
 
 export default class PointerLockControlProvider extends ControlProvider {
+  #imageSrc;
+
+  constructor() {
+    super();
+  }
+
+  get hasMouse() {
+    if (!window.matchMedia) return true;
+
+    return !!window.matchMedia("(pointer: coarse)");
+  }
+
   createControls() {
     this.controls = new PointerLockControls(
       this.controller.camera,
@@ -10,11 +23,15 @@ export default class PointerLockControlProvider extends ControlProvider {
       this.controller.scene,
     );
 
-    this.#initPointerLockInterface();
-
     this.controller.scene.add(this.controls.getObject());
 
     this.#addKeyboardListeners();
+
+    if (this.hasMouse) {
+      this.#initPointerLockInterface();
+    } else {
+      this.#initJoyStickInterface();
+    }
   }
 
   animate() {
@@ -44,19 +61,20 @@ export default class PointerLockControlProvider extends ControlProvider {
     }
   }
 
+  async #initJoyStickInterface() {
+    // const nipplejs = await import(
+    //   /* webpackChunkName: "nipplejs" */ "nipplejs"
+    // );
+    // console.log(nipplejs);
+  }
+
   #initPointerLockInterface() {
-    this.controller.instructions.addEventListener("click", () => {
-      this.controls.lock();
-    });
-
+    this.controller.host.requestUpdate();
     this.controls.addEventListener("lock", () => {
-      this.controller.instructions.style.display = "none";
-      this.controller.blocker.style.display = "none";
+      this.controller.host.requestUpdate();
     });
-
     this.controls.addEventListener("unlock", () => {
-      this.controller.blocker.style.display = "block";
-      this.controller.instructions.style.display = "";
+      this.controller.host.requestUpdate();
     });
   }
 
@@ -80,16 +98,11 @@ export default class PointerLockControlProvider extends ControlProvider {
     )
       .then((res) => res.json())
       .then((res) => {
-        if (res.data[0]) {
-          this.controller.host.dispatchEvent(
-            new CustomEvent("imageChanged", {
-              detail: {
-                src: res.data[0],
-              },
-              bubbles: true,
-              composed: true,
-            }),
-          );
+        const img = res.data[0];
+
+        if (img) {
+          this.#imageSrc = img;
+          this.controller.host.requestUpdate();
         }
       });
   };
@@ -117,4 +130,21 @@ export default class PointerLockControlProvider extends ControlProvider {
 
     return this.#imageQueryWithSkip(position);
   };
+
+  #renderImageViewer() {
+    return html`
+      <rodo-image-viewer src="${this.#imageSrc}"></rodo-image-viewer>
+    `;
+  }
+
+  #renderBlocker() {
+    return html`<rodo-pointer-lock-blocker
+      @click=${this.controls.lock}
+      ?lock=${this.controls.isLocked}
+    ></rodo-pointer-lock-blocker>`;
+  }
+
+  renderStaticContent() {
+    return [this.#renderBlocker(), this.#renderImageViewer()];
+  }
 }

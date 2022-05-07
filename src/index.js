@@ -1,4 +1,4 @@
-import { html, render } from "lit-html";
+import { html, render } from "lit";
 import "./components";
 
 if (process.env.NODE_ENV != "development") {
