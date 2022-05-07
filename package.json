@@ -9,7 +9,7 @@
     "build:prod": "NODE_ENV=production webpack build",
     "lint": "eslint src/**/*.js --fix",
     "clean": "rimraf dist",
-    "analyze": "webpack --profile --json dist/stats.json && webpack-bundle-analyzer dist/stats.json -m static -r dist/report.html -O"
+    "analyze": "NODE_ENV=production webpack --profile --json dist/stats.json && webpack-bundle-analyzer dist/stats.json -m static -r dist/report.html -O"
   },
   "dependencies": {
     "lit": "^2.2.3",
