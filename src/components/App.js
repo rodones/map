@@ -2,6 +2,9 @@ import { LitElement, html, css } from "lit";
 import { ref, createRef } from "lit/directives/ref.js";
 import { when } from "lit/directives/when.js";
 import info from "../icons/info";
+import arrowsExpand from "../icons/arrows-expand";
+import chartSquareBar from "../icons/chart-square-bar";
+import officeBuilding from "../icons/office-building";
 
 export class App extends LitElement {
   static properties = {
@@ -87,6 +90,16 @@ export class App extends LitElement {
     this.stats = !this.stats;
   }
 
+  #toggleFullScreen() {
+    if (!document.fullscreenElement) {
+      document.documentElement
+        .requestFullscreen({ navigationUI: "hide" })
+        .catch(console.error);
+    } else {
+      document.exitFullscreen();
+    }
+  }
+
   #renderLayout() {
     return html`
       <rodo-rectangular-layout position="right" align="right">
@@ -94,12 +107,15 @@ export class App extends LitElement {
           this._warp.shouldRender,
           () => html`
             <rodo-button title="Places" @click="${this.#showWarp}">
-              P
+              ${officeBuilding}
             </rodo-button>
           `,
         )}
         <rodo-button title="FPS Counter" @click="${this.#toggleStats}">
-          F
+          ${chartSquareBar}
+        </rodo-button>
+        <rodo-button title="Full screen" @click="${this.#toggleFullScreen}">
+          ${arrowsExpand}
         </rodo-button>
         <rodo-button title="About" @click="${this.#showAbout}">
           ${info}
