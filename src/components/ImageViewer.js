@@ -1,12 +1,21 @@
 import { LitElement, html, css } from "lit";
+import { when } from "lit-html/directives/when.js";
 
 export class ImageViewer extends LitElement {
   static get styles() {
     return css`
       :host {
         position: absolute;
+      }
+
+      :host(.hasMouse) {
         bottom: 4px;
         left: 4px;
+      }
+
+      :host(:not(.hasMouse)) {
+        top: 4px;
+        right: 4px;
       }
 
       .container {
@@ -65,7 +74,10 @@ export class ImageViewer extends LitElement {
       class="container ${this._size}"
       @click="${this.#handleImageResize}"
     >
-      <rodo-imagekit src="${this.src}"></rodo-imagekit>
+      ${when(
+        !!this.src,
+        () => html`<rodo-imagekit src="${this.src}"></rodo-imagekit>`,
+      )}
     </div>`;
   }
 }

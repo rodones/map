@@ -47,12 +47,6 @@ export class PointerLockBlocker extends LitElement {
       .locked {
         display: none;
       }
-
-      @media (pointer: coarse) {
-        .blocker {
-          display: none;
-        }
-      }
     `;
   }
 

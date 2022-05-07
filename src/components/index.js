@@ -7,6 +7,3 @@ export * from "./ModalPortal";
 export * from "./Modal";
 export * from "./AboutModal";
 export * from "./WarpModal";
-export * from "./ImageKit";
-export * from "./ImageViewer";
-export * from "./PointerLockBlocker";

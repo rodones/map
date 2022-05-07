@@ -1,4 +1,7 @@
+import "../components/ImageKit";
+import "../components/ImageViewer";
 import { html } from "lit";
+import { classMap } from "lit-html/directives/class-map.js";
 import { ControlProvider } from "../components/Canvas.controller";
 import PointerLockControls from "./PointerLockControls";
 import { withSkip } from "./PointerLockControlUtils";
@@ -13,7 +16,7 @@ export default class PointerLockControlProvider extends ControlProvider {
   get hasMouse() {
     if (!window.matchMedia) return true;
 
-    return !!window.matchMedia("(pointer: coarse)");
+    return window.matchMedia("(any-pointer:fine)").matches;
   }
 
   createControls() {
@@ -22,6 +25,7 @@ export default class PointerLockControlProvider extends ControlProvider {
       this.controller.canvas,
       this.controller.scene,
     );
+    this.controls.hasMouse = this.hasMouse;
 
     this.controller.scene.add(this.controls.getObject());
 
@@ -62,14 +66,22 @@ export default class PointerLockControlProvider extends ControlProvider {
   }
 
   async #initJoyStickInterface() {
-    // const nipplejs = await import(
-    //   /* webpackChunkName: "nipplejs" */ "nipplejs"
-    // );
-    // console.log(nipplejs);
+    this.controls.isLocked = true;
+
+    await import(
+      /* webpackChunkName: "PointerLockJoyStick" */ "./../components/PointerLockJoyStick"
+    );
+
+    this.controller.host.requestUpdate();
   }
 
-  #initPointerLockInterface() {
+  async #initPointerLockInterface() {
+    await import(
+      /* webpackChunkName: "PointerLockBlocker" */ "./../components/PointerLockBlocker"
+    );
+
     this.controller.host.requestUpdate();
+
     this.controls.addEventListener("lock", () => {
       this.controller.host.requestUpdate();
     });
@@ -133,7 +145,10 @@ export default class PointerLockControlProvider extends ControlProvider {
 
   #renderImageViewer() {
     return html`
-      <rodo-image-viewer src="${this.#imageSrc}"></rodo-image-viewer>
+      <rodo-image-viewer
+        src="${this.#imageSrc}"
+        class="${classMap({ hasMouse: this.hasMouse })}"
+      ></rodo-image-viewer>
     `;
   }
 
@@ -144,7 +159,14 @@ export default class PointerLockControlProvider extends ControlProvider {
     ></rodo-pointer-lock-blocker>`;
   }
 
+  #renderJoyStick() {
+    return html`<rodo-pointer-lock-joystick></rodo-pointer-lock-joystick>`;
+  }
+
   renderStaticContent() {
-    return [this.#renderBlocker(), this.#renderImageViewer()];
+    return [
+      this.hasMouse ? this.#renderBlocker() : this.#renderJoyStick(),
+      this.#renderImageViewer(),
+    ];
   }
 }

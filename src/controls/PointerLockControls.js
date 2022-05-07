@@ -1,5 +1,5 @@
 /**
- * This code taken from threejs examples. It might be refactored or edit.
+ * This code based from threejs examples. It is highly changed and refactored.
  * Source: https://github.com/mrdoob/three.js/blob/master/examples/jsm/controls/PointerLockControls.js
  */
 
@@ -18,6 +18,7 @@ export default class PointerLockControls extends EventDispatcher {
     this.scene = scene;
 
     this.isLocked = false; // parameter for checking can camera move
+    this.hasMouse = true; // parameter for disabling mouse move handler
 
     // Constants
     this.minPolarAngle = 0;
@@ -185,6 +186,8 @@ export default class PointerLockControls extends EventDispatcher {
 
   onMouseMove = (event) => {
     if (this.isLocked === false) return;
+    if (!this.hasMouse && !event.relatedTarget?.tagName?.startsWith?.("RODO"))
+      return;
 
     const movementX =
       event.movementX || event.mozMovementX || event.webkitMovementX || 0;
@@ -242,6 +245,7 @@ export default class PointerLockControls extends EventDispatcher {
     }
 
     if (flag) this.calculateWorldVelocity();
+    this.changed();
   };
 
   onKeyUp = (event) => {
