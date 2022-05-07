@@ -23,8 +23,8 @@
  * THE SOFTWARE.
  */
 
-import { Triangle } from "three";
 import {
+  Triangle,
   Box3,
   BufferAttribute,
   BufferGeometry,
