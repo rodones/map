@@ -26,7 +26,7 @@ window.onload = () => {
 
   const modelBase =
     modelBases[searchParams.get("from")] ?? modelBases["digitalocean"];
-  const modelName = searchParams.get("model") ?? "main.nxz";
+  const modelName = searchParams.get("model") ?? "scene.json";
 
   const control = searchParams.get("control") ?? "pointer-lock";
   const model = modelBase + modelName;

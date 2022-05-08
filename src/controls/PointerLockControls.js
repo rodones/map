@@ -17,9 +17,9 @@ export default class PointerLockControls extends EventDispatcher {
     // Constants
     this.minPolarAngle = 0;
     this.maxPolarAngle = Math.PI;
-    this.delta = 0.25;
+    this.delta = 0.5;
     this.distance = 5;
-    this.jumpOffset = 25;
+    this.jumpOffset = 10;
 
     // Controller values
     this.canJump = false; // Formed as [is jumping, can jump]
@@ -227,7 +227,7 @@ export default class PointerLockControls extends EventDispatcher {
         this.keys[3] = 1;
         break;
       case "ShiftLeft":
-        this.sprint = 30;
+        this.sprint = 3.5;
         break;
       case "Space":
         if (this.canJump) {
