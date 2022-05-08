@@ -13,7 +13,6 @@ import {
   Matrix4,
   CubeTextureLoader,
 } from "three";
-import Stats from "stats.js";
 
 /**
  * @typedef {import("./Canvas").Canvas} Canvas
@@ -95,16 +94,19 @@ export class CanvasController {
       this.canvas.offsetHeight,
       false,
     );
-
-    this.stats = new Stats();
-    this.stats.showPanel(0);
-    this.stats.dom.id = "stats";
-    this.stats.dom.style.top = "35px";
-    document.body.appendChild(this.stats.dom);
-    this.toggleStats();
   }
 
-  toggleStats() {
+  async toggleStats() {
+    if (!this.stats) {
+      const Stats = await import("stats.js").then((m) => m.default);
+
+      this.stats = new Stats();
+      this.stats.showPanel(0);
+      this.stats.dom.id = "stats";
+      this.stats.dom.style.top = "35px";
+      document.body.appendChild(this.stats.dom);
+    }
+
     this.stats.dom.style.display = this.host.stats ? "block" : "none";
   }
 
