@@ -1,8 +1,3 @@
-/**
- * This code based from threejs examples. It is highly changed and refactored.
- * Source: https://github.com/mrdoob/three.js/blob/master/examples/jsm/controls/PointerLockControls.js
- */
-
 import { Matrix4, Raycaster, Euler, EventDispatcher, Vector3 } from "three";
 
 export default class PointerLockControls extends EventDispatcher {
