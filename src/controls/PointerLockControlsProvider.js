@@ -8,9 +8,11 @@ import { withSkip } from "./PointerLockControlUtils";
 
 export default class PointerLockControlProvider extends ControlProvider {
   #imageSrc;
+  #imageHistory;
 
   constructor() {
     super();
+    this.#imageHistory = [];
   }
 
   get hasMouse() {
@@ -102,18 +104,23 @@ export default class PointerLockControlProvider extends ControlProvider {
     this.controls.removeEventListener("change", this.#imageQueryHandler);
   }
 
-  #imageQuery = async (position) => {
+  #imageQuery = (position) => {
     const { x, y, z } = position;
 
     fetch(
       `https://imba.eu-central-1.elasticbeanstalk.com/images?x=${x}0&y=${y}&z=${z}&radius=9.0`,
     )
       .then((res) => res.json())
-      .then((res) => {
-        const img = res.data[0];
+      .then(({ data }) => {
+        const img =
+          data.find(
+            (currentImage) => !this.#imageHistory.includes(currentImage),
+          ) || data[0];
 
         if (img) {
           this.#imageSrc = img;
+          if (this.#imageHistory.length > 10) this.#imageHistory.splice(0, 1);
+          this.#imageHistory.push(img);
           this.controller.host.requestUpdate();
         }
       });
