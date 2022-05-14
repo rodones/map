@@ -55,7 +55,6 @@ export class CanvasController {
     this.scene = new Scene();
 
     this.scene.background = new Color(0x0073b6);
-    this.scene.fog = new Fog(0x050505, 2000, 3500);
 
     this.scene.add(new AmbientLight(0x444444));
 
@@ -87,7 +86,6 @@ export class CanvasController {
       antialias: true,
       canvas: this.canvas,
     });
-    this.renderer.setClearColor(this.scene.fog.color);
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(
       this.canvas.offsetWidth,
@@ -115,7 +113,7 @@ export class CanvasController {
       60,
       this.canvas.offsetWidth / this.canvas.offsetHeight,
       1,
-      2000,
+      20000,
     );
     this.camera.position.set(20, -10, 20);
     this.camera.rotation.set(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2);
