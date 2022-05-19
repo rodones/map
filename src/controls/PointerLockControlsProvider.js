@@ -4,10 +4,13 @@ import { html } from "lit";
 import { classMap } from "lit-html/directives/class-map.js";
 import { ControlProvider } from "../components/Canvas.controller";
 import PointerLockControls from "./PointerLockControls";
-import { withSkip } from "./PointerLockControlUtils";
 
 export default class PointerLockControlProvider extends ControlProvider {
+  #HISTORY_LENGTH = 500;
+
   #imageSrc;
+  #imageData;
+  #imagePos;
   #imageHistory;
 
   constructor() {
@@ -95,59 +98,66 @@ export default class PointerLockControlProvider extends ControlProvider {
   #addKeyboardListeners() {
     document.addEventListener("keydown", this.controls.onKeyDown);
     document.addEventListener("keyup", this.controls.onKeyUp);
-    this.controls.addEventListener("change", this.#imageQueryHandler);
+    this.timerId = setInterval(this.#imageQueryHandler, 2000);
   }
 
   #removeKeyboardListeners() {
     document.removeEventListener("keydown", this.controls.onKeyDown);
     document.removeEventListener("keyup", this.controls.onKeyUp);
-    this.controls.removeEventListener("change", this.#imageQueryHandler);
+    this.timerId = void clearInterval(this.timerId);
   }
 
   #imageQuery = (position) => {
-    const { x, y, z } = position;
+    const handle = this.#handleImageData(position);
 
-    fetch(
-      `https://imba.eu-central-1.elasticbeanstalk.com/images?x=${x}0&y=${y}&z=${z}&radius=9.0`,
-    )
-      .then((res) => res.json())
-      .then(({ data }) => {
-        const img =
-          data.find(
-            (currentImage) => !this.#imageHistory.includes(currentImage),
-          ) || data[0];
-
-        if (img) {
-          this.#imageSrc = img;
-          if (this.#imageHistory.length > 10) this.#imageHistory.splice(0, 1);
-          this.#imageHistory.push(img);
-          this.controller.host.requestUpdate();
-        }
-      });
+    if (
+      this.#imagePos &&
+      this.#imagePos.x === position.x &&
+      this.#imagePos.y === position.y &&
+      this.#imagePos.z === position.z
+    ) {
+      handle({ data: this.#imageData });
+    } else {
+      fetch(
+        `https://imba.eu-central-1.elasticbeanstalk.com/images?x=${position.x}0&y=${position.y}&z=${position.z}&radius=30.0`,
+      )
+        .then((res) => res.json())
+        .then(handle);
+    }
   };
 
-  #imageQuerySkipCloseValues = (prevArgs, args) => {
-    const [prevPos] = prevArgs;
-    const [pos] = args;
+  #handleImageData =
+    ({ x, y, z }) =>
+    ({ data }) => {
+      const img =
+        data.find(
+          (currentImage) => !this.#imageHistory.includes(currentImage),
+        ) || data[0];
 
-    return (
-      !!prevPos &&
-      Math.abs(prevPos.x - pos.x) +
-        Math.abs(prevPos.y - pos.y) +
-        Math.abs(prevPos.z - pos.z) <=
-        10
-    );
-  };
+      if (img) {
+        this.#imagePos = { x, y, z };
+        this.#imageData = data;
+        this.#imageSrc = img;
+        if (this.#imageHistory.length > this.#HISTORY_LENGTH)
+          this.#imageHistory.splice(0, 1);
+        this.#imageHistory.push(img);
+      } else if (
+        this.#imagePos &&
+        Math.pow(this.#imagePos.x - x, 2) +
+          Math.pow(this.#imagePos.y - y, 2) +
+          Math.pow(this.#imagePos.z - z, 2) >
+          30000
+      ) {
+        this.#imageSrc = "";
+      }
 
-  #imageQueryWithSkip = withSkip(
-    this.#imageQuery,
-    this.#imageQuerySkipCloseValues,
-  );
+      this.controller.host.requestUpdate();
+    };
 
   #imageQueryHandler = () => {
     const position = this.controller.camera.position.clone();
 
-    return this.#imageQueryWithSkip(position);
+    return this.#imageQuery(position);
   };
 
   #renderImageViewer() {

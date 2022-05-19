@@ -6,7 +6,7 @@ export function withThrottled(fn, ms = 250) {
 
     if (now >= lastExecution + ms) {
       lastExecution = now;
-      return fn(args);
+      return fn(...args);
     }
   };
 }
