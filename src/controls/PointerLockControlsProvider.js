@@ -98,13 +98,13 @@ export default class PointerLockControlProvider extends ControlProvider {
   #addKeyboardListeners() {
     document.addEventListener("keydown", this.controls.onKeyDown);
     document.addEventListener("keyup", this.controls.onKeyUp);
-    this.timerId = setInterval(this.#imageQueryHandler, 2000);
+    //this.timerId = setInterval(this.#imageQueryHandler, 2000);
   }
 
   #removeKeyboardListeners() {
     document.removeEventListener("keydown", this.controls.onKeyDown);
     document.removeEventListener("keyup", this.controls.onKeyUp);
-    this.timerId = void clearInterval(this.timerId);
+    //this.timerId = void clearInterval(this.timerId);
   }
 
   #imageQuery = (position) => {
@@ -183,7 +183,7 @@ export default class PointerLockControlProvider extends ControlProvider {
   renderStaticContent() {
     return [
       this.hasMouse ? this.#renderBlocker() : this.#renderJoyStick(),
-      this.#renderImageViewer(),
+      //this.#renderImageViewer(),
     ];
   }
 }
